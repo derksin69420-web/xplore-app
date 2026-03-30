@@ -552,6 +552,259 @@
       padding-bottom: 88px;
     }
 
+    .app-section {
+      padding-top: 24px;
+      padding-bottom: 92px;
+    }
+
+    .app-shell {
+      padding: 28px;
+      border-radius: 34px;
+      background:
+        radial-gradient(circle at top left, rgba(255, 217, 61, 0.18), transparent 24%),
+        linear-gradient(180deg, rgba(255,255,255,0.92), rgba(255, 245, 236, 0.94));
+      border: 1px solid rgba(255,255,255,0.76);
+      box-shadow: 0 28px 72px rgba(180, 108, 71, 0.16);
+    }
+
+    .app-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 18px;
+      margin-bottom: 22px;
+    }
+
+    .app-top p {
+      margin: 12px 0 0;
+      color: var(--muted);
+      line-height: 1.7;
+      max-width: 54ch;
+    }
+
+    .app-badge {
+      padding: 12px 16px;
+      border-radius: 18px;
+      background: rgba(255,255,255,0.82);
+      color: #986245;
+      font-size: 0.9rem;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .app-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.25fr) 320px;
+      gap: 18px;
+      align-items: start;
+    }
+
+    .feed-grid {
+      display: grid;
+      gap: 16px;
+    }
+
+    .event-feed-card {
+      padding: 22px;
+      border-radius: 24px;
+      background: rgba(255,255,255,0.88);
+      border: 1px solid rgba(255,255,255,0.78);
+      box-shadow: 0 18px 36px rgba(173, 107, 71, 0.12);
+    }
+
+    .event-feed-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: flex-start;
+    }
+
+    .event-feed-head h3 {
+      margin: 0;
+      font-size: 1.18rem;
+      letter-spacing: -0.04em;
+    }
+
+    .feed-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .feed-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(255, 240, 225, 0.92);
+      color: #8d5a3c;
+      font-size: 0.82rem;
+      font-weight: 700;
+    }
+
+    .event-feed-card p {
+      margin: 14px 0 0;
+      color: var(--muted);
+      line-height: 1.65;
+    }
+
+    .feed-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .feed-side {
+      display: grid;
+      gap: 16px;
+    }
+
+    .side-card {
+      padding: 20px;
+      border-radius: 24px;
+      background: rgba(255,255,255,0.82);
+      border: 1px solid rgba(255,255,255,0.76);
+      box-shadow: 0 18px 34px rgba(170, 107, 70, 0.12);
+    }
+
+    .side-card h3 {
+      margin: 0;
+      font-size: 1.08rem;
+      letter-spacing: -0.03em;
+    }
+
+    .side-card p {
+      margin: 12px 0 0;
+      color: var(--muted);
+      line-height: 1.65;
+      font-size: 0.95rem;
+    }
+
+    .interest-cloud {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    .onboarding-overlay {
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background: rgba(73, 43, 27, 0.28);
+      backdrop-filter: blur(10px);
+      z-index: 40;
+      padding: 18px;
+    }
+
+    .onboarding-overlay.visible {
+      display: flex;
+    }
+
+    .onboarding-modal {
+      width: min(620px, 100%);
+      max-height: calc(100vh - 36px);
+      overflow: auto;
+      padding: 24px;
+      border-radius: 30px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255, 247, 239, 0.98));
+      border: 1px solid rgba(255,255,255,0.85);
+      box-shadow: 0 28px 72px rgba(80, 46, 28, 0.22);
+    }
+
+    .modal-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: flex-start;
+      margin-bottom: 18px;
+    }
+
+    .modal-top h3 {
+      margin: 0;
+      font-size: 1.7rem;
+      letter-spacing: -0.05em;
+    }
+
+    .modal-top p {
+      margin: 10px 0 0;
+      color: var(--muted);
+      line-height: 1.65;
+    }
+
+    .close-modal {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      border: none;
+      background: rgba(255, 245, 235, 0.95);
+      color: #945a3c;
+      font-size: 1rem;
+    }
+
+    .form-grid {
+      display: grid;
+      gap: 14px;
+    }
+
+    .field-group {
+      display: grid;
+      gap: 8px;
+    }
+
+    .field-group label {
+      font-size: 0.9rem;
+      font-weight: 700;
+    }
+
+    .field-group input {
+      width: 100%;
+      padding: 14px 16px;
+      border-radius: 16px;
+      border: 1px solid rgba(190, 126, 88, 0.16);
+      background: #fffdf9;
+      color: var(--text);
+      outline: none;
+    }
+
+    .field-group input:focus {
+      border-color: rgba(255, 107, 107, 0.36);
+      box-shadow: 0 0 0 4px rgba(255, 107, 107, 0.1);
+    }
+
+    .chip-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .chip {
+      border: none;
+      padding: 10px 14px;
+      border-radius: 999px;
+      background: rgba(255, 241, 227, 0.96);
+      color: #8c593c;
+      font-weight: 700;
+    }
+
+    .chip.active {
+      background: linear-gradient(135deg, rgba(255, 217, 61, 0.28), rgba(255, 107, 107, 0.18));
+      color: #8d4438;
+      box-shadow: 0 10px 20px rgba(255, 142, 83, 0.12);
+    }
+
+    .onboarding-note {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.92rem;
+      line-height: 1.6;
+    }
+
     .cta-shell {
       padding: 38px 32px;
       text-align: center;
@@ -634,7 +887,9 @@
       .hero-card,
       .card,
       .organizer-band,
-      .cta-shell {
+      .cta-shell,
+      .app-shell,
+      .onboarding-modal {
         padding: 22px;
       }
 
@@ -644,6 +899,14 @@
 
       .hero p.lead {
         font-size: 1rem;
+      }
+
+      .app-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .app-top {
+        flex-direction: column;
       }
     }
   </style>
@@ -661,7 +924,7 @@
             <span class="brand-mark" aria-hidden="true"></span>
             <span>Xplore</span>
           </a>
-          <a class="nav-cta" href="https://xplore-app-five.vercel.app/" data-app-link>Try Xplore Free</a>
+          <a class="nav-cta" href="#app-experience" data-app-link>Try Xplore Free</a>
         </div>
 
         <div class="hero-grid">
@@ -670,7 +933,7 @@
             <h1>Find your people. Just show up.</h1>
             <p class="lead">Xplore finds local events and activities matched to your interests — so you meet people naturally, without the awkwardness of apps or the pressure of social media.</p>
             <div class="hero-actions">
-              <a class="btn btn-primary" href="https://xplore-app-five.vercel.app/" data-app-link>Try Xplore Free</a>
+              <a class="btn btn-primary" href="#app-experience" data-app-link>Try Xplore Free</a>
               <a class="btn btn-secondary" href="#how-it-works">See How It Works</a>
             </div>
           </div>
@@ -881,21 +1144,260 @@
             <h2>Your people are already out there.</h2>
             <p>They're at the golf league, the cooking class, the trivia night. Xplore just helps you find them.</p>
             <div class="hero-actions" style="justify-content:center;">
-              <a class="btn btn-primary" href="https://xplore-app-five.vercel.app/" data-app-link>Find Your First Event →</a>
+              <a class="btn btn-primary" href="#app-experience" data-app-link>Find Your First Event →</a>
             </div>
             <div class="microcopy">Free to use • No account required • No social pressure</div>
+          </div>
+        </div>
+      </section>
+
+      <section id="app-experience" class="app-section">
+        <div class="container">
+          <div class="app-shell reveal">
+            <div class="app-top">
+              <div>
+                <span class="section-kicker">Launch Xplore</span>
+                <h2 style="font-size:clamp(1.9rem,4vw,3rem);">Step into the app experience.</h2>
+                <p id="app-intro-copy">Start with a quick private onboarding, then Xplore will show you local events that fit your interests and feel easy to walk into.</p>
+              </div>
+              <div class="app-badge" id="app-status-badge">Private onboarding • 60 seconds</div>
+            </div>
+            <div class="app-grid">
+              <div class="feed-grid" id="app-feed"></div>
+              <aside class="feed-side">
+                <div class="side-card">
+                  <h3 id="side-title">What happens next</h3>
+                  <p id="side-copy">Tell Xplore your first name, age, location, and interests. Nothing is public. Once you're in, your event feed lives right here beneath the landing page.</p>
+                  <div class="hero-actions" style="margin-top:18px;">
+                    <button class="btn btn-primary" type="button" data-app-link>Launch App</button>
+                  </div>
+                </div>
+                <div class="side-card">
+                  <h3>Your interests shape the feed</h3>
+                  <p>Think golf leagues, running clubs, cooking classes, trivia nights, and easy repeatable rituals that make a new place feel familiar faster.</p>
+                  <div class="interest-cloud" id="interest-cloud">
+                    <span class="tiny-tag">Golf</span>
+                    <span class="tiny-tag">Cooking</span>
+                    <span class="tiny-tag">Trivia</span>
+                    <span class="tiny-tag">Running</span>
+                  </div>
+                </div>
+              </aside>
+            </div>
           </div>
         </div>
       </section>
     </main>
   </div>
 
+  <div class="onboarding-overlay" id="onboarding-overlay" aria-hidden="true">
+    <div class="onboarding-modal">
+      <div class="modal-top">
+        <div>
+          <span class="section-kicker">Start Exploring</span>
+          <h3>Tell Xplore a little about you</h3>
+          <p>It takes about a minute. Nothing is public, and this stays on your device.</p>
+        </div>
+        <button class="close-modal" id="close-onboarding" aria-label="Close onboarding">✕</button>
+      </div>
+      <div class="form-grid">
+        <div class="field-group">
+          <label for="onboard-name">First name</label>
+          <input id="onboard-name" type="text" placeholder="Alex" />
+        </div>
+        <div class="field-group">
+          <label for="onboard-age">Age</label>
+          <input id="onboard-age" type="number" min="16" max="99" placeholder="27" />
+        </div>
+        <div class="field-group">
+          <label for="onboard-city">City or neighborhood</label>
+          <input id="onboard-city" type="text" placeholder="Austin, TX" />
+        </div>
+        <div class="field-group">
+          <label>What are you into?</label>
+          <div class="chip-grid" id="onboard-interests">
+            <button class="chip" type="button" data-interest="Golf">Golf</button>
+            <button class="chip" type="button" data-interest="Cooking">Cooking</button>
+            <button class="chip" type="button" data-interest="Trivia">Trivia</button>
+            <button class="chip" type="button" data-interest="Running">Running</button>
+            <button class="chip" type="button" data-interest="Yoga">Yoga</button>
+            <button class="chip" type="button" data-interest="Hiking">Hiking</button>
+            <button class="chip" type="button" data-interest="Coding">Coding</button>
+            <button class="chip" type="button" data-interest="Board Games">Board Games</button>
+          </div>
+        </div>
+        <p class="onboarding-note">Choose at least two interests so Xplore can start with a strong first set of picks.</p>
+        <div class="hero-actions" style="margin-top:6px;">
+          <button class="btn btn-primary" type="button" id="finish-onboarding">See My Events</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script>
+    const APP_STORAGE_KEY = "xplore_landing_profile";
+    const appSection = document.getElementById("app-experience");
+    const appFeed = document.getElementById("app-feed");
+    const onboardingOverlay = document.getElementById("onboarding-overlay");
+    const appIntroCopy = document.getElementById("app-intro-copy");
+    const appStatusBadge = document.getElementById("app-status-badge");
+    const sideTitle = document.getElementById("side-title");
+    const sideCopy = document.getElementById("side-copy");
+    const interestCloud = document.getElementById("interest-cloud");
+    const selectedInterests = new Set();
+
+    const demoEvents = [
+      { emoji: "⛳", title: "Twilight Golf League Mixer", category: "Golf", date: "Wed • 6:30 PM", location: "Lions Municipal, Austin", description: "A relaxed nine-hole league night with patio drinks after. People usually stick around after the round and plan the next one together." },
+      { emoji: "🍳", title: "Hands-On Pasta Night", category: "Cooking", date: "Thu • 7:00 PM", location: "South Congress Kitchen Lab", description: "Fresh pasta workshop with shared prep tables and a long dinner at the end. Easy conversation because everyone is making the meal together." },
+      { emoji: "🧠", title: "Neighborhood Trivia Social", category: "Trivia", date: "Tue • 7:30 PM", location: "East Side Beer Garden", description: "Solo joiners get placed on teams before the first round. It feels fun and low-stakes instead of awkward." },
+      { emoji: "🏃", title: "Morning Run Club", category: "Running", date: "Sat • 8:00 AM", location: "Lady Bird Lake Trail", description: "Three pace groups, coffee after, and a crowd that's used to welcoming new people. Great for seeing familiar faces every week." },
+      { emoji: "🧘", title: "Sunrise Flow & Coffee", category: "Yoga", date: "Sun • 9:00 AM", location: "Zilker Great Lawn", description: "Outdoor yoga followed by tea and a short walk to a neighborhood cafe. More social than a normal class, but still easygoing." },
+      { emoji: "🥾", title: "Saturday Ridge Hike", category: "Hiking", date: "Sat • 10:00 AM", location: "Barton Creek Trailhead", description: "A beginner-friendly trail meetup with regroup stops and tacos after. The walk gives people something natural to talk around." },
+      { emoji: "💻", title: "Builders Breakfast", category: "Coding", date: "Fri • 8:30 AM", location: "Downtown cowork cafe", description: "A quiet work-and-chat morning for developers and founders. Structured table prompts make it easy to join without knowing anyone." },
+      { emoji: "🎲", title: "Hosted Board Game Night", category: "Board Games", date: "Thu • 6:45 PM", location: "North Loop game bar", description: "Quick-teach tabletop games with hosts matching solo arrivals to welcoming tables. Great if you want conversation without a lot of pressure." }
+    ];
+
+    function loadProfile() {
+      try {
+        const raw = localStorage.getItem(APP_STORAGE_KEY);
+        return raw ? JSON.parse(raw) : null;
+      } catch (error) {
+        return null;
+      }
+    }
+
+    function saveProfile(profile) {
+      localStorage.setItem(APP_STORAGE_KEY, JSON.stringify(profile));
+    }
+
+    function filteredEvents(profile) {
+      const interests = profile?.interests || [];
+      const prioritized = demoEvents.filter((event) => interests.includes(event.category));
+      const rest = demoEvents.filter((event) => !interests.includes(event.category));
+      return [...prioritized, ...rest].slice(0, 4);
+    }
+
+    function renderAppFeed() {
+      const profile = loadProfile();
+      if (!profile) {
+        appFeed.innerHTML = `
+          <article class="event-feed-card">
+            <h3 style="margin:0; font-size:1.3rem; letter-spacing:-0.04em;">Your private event feed starts here.</h3>
+            <p>Click any “Try Xplore Free” button and you'll drop straight into onboarding. Once you finish, this section becomes your personalized event feed.</p>
+          </article>
+        `;
+        appIntroCopy.textContent = "Start with a quick private onboarding, then Xplore will show you local events that fit your interests and feel easy to walk into.";
+        appStatusBadge.textContent = "Private onboarding • 60 seconds";
+        sideTitle.textContent = "What happens next";
+        sideCopy.textContent = "Tell Xplore your first name, age, location, and interests. Nothing is public. Once you're in, your event feed lives right here beneath the landing page.";
+        interestCloud.innerHTML = `
+          <span class="tiny-tag">Golf</span>
+          <span class="tiny-tag">Cooking</span>
+          <span class="tiny-tag">Trivia</span>
+          <span class="tiny-tag">Running</span>
+        `;
+        return;
+      }
+
+      const events = filteredEvents(profile);
+      appIntroCopy.textContent = `${profile.firstName}, here are a few event picks matched to your interests in ${profile.city}.`;
+      appStatusBadge.textContent = `${profile.interests.length} interests matched • Feed ready`;
+      sideTitle.textContent = "Your Xplore vibe";
+      sideCopy.textContent = `You're set up for ${profile.city} with interests in ${profile.interests.join(", ")}. In the full product, this section keeps learning from what you save, skip, and attend.`;
+      interestCloud.innerHTML = profile.interests.map((interest) => `<span class="tiny-tag">${interest}</span>`).join("");
+      appFeed.innerHTML = events.map((event) => `
+        <article class="event-feed-card">
+          <div class="event-feed-head">
+            <div>
+              <h3>${event.emoji} ${event.title}</h3>
+              <div class="feed-meta">
+                <span class="feed-pill">${event.category}</span>
+                <span class="feed-pill">${event.date}</span>
+                <span class="feed-pill">${event.location}</span>
+              </div>
+            </div>
+            <span class="feed-pill">Matched for you</span>
+          </div>
+          <p>${event.description}</p>
+          <div class="feed-actions">
+            <button class="btn btn-primary" type="button">I'm Interested</button>
+            <button class="btn btn-secondary" type="button">See Details</button>
+          </div>
+        </article>
+      `).join("");
+    }
+
+    function openOnboarding() {
+      onboardingOverlay.classList.add("visible");
+      onboardingOverlay.setAttribute("aria-hidden", "false");
+    }
+
+    function closeOnboarding() {
+      onboardingOverlay.classList.remove("visible");
+      onboardingOverlay.setAttribute("aria-hidden", "true");
+    }
+
+    function scrollToAppSection() {
+      appSection.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
+    function launchAppFlow() {
+      const profile = loadProfile();
+      scrollToAppSection();
+      setTimeout(() => {
+        if (profile) {
+          renderAppFeed();
+        } else {
+          openOnboarding();
+        }
+      }, 380);
+    }
+
     document.querySelectorAll("[data-app-link]").forEach((link) => {
       link.addEventListener("click", (event) => {
         event.preventDefault();
-        window.location.href = "https://xplore-app-five.vercel.app/";
+        launchAppFlow();
       });
+    });
+
+    document.querySelectorAll("[data-interest]").forEach((chip) => {
+      chip.addEventListener("click", () => {
+        const interest = chip.dataset.interest;
+        if (selectedInterests.has(interest)) {
+          selectedInterests.delete(interest);
+          chip.classList.remove("active");
+        } else {
+          selectedInterests.add(interest);
+          chip.classList.add("active");
+        }
+      });
+    });
+
+    document.getElementById("close-onboarding").addEventListener("click", closeOnboarding);
+    onboardingOverlay.addEventListener("click", (event) => {
+      if (event.target === onboardingOverlay) {
+        closeOnboarding();
+      }
+    });
+
+    document.getElementById("finish-onboarding").addEventListener("click", () => {
+      const firstName = document.getElementById("onboard-name").value.trim();
+      const age = Number(document.getElementById("onboard-age").value);
+      const city = document.getElementById("onboard-city").value.trim();
+      if (!firstName || !age || age < 16 || age > 99 || !city || selectedInterests.size < 2) {
+        alert("Add your name, age, city, and at least two interests to continue.");
+        return;
+      }
+
+      saveProfile({
+        firstName,
+        age,
+        city,
+        interests: Array.from(selectedInterests)
+      });
+      closeOnboarding();
+      renderAppFeed();
+      setTimeout(scrollToAppSection, 80);
     });
 
     const observer = new IntersectionObserver((entries) => {
@@ -912,6 +1414,8 @@
         observer.observe(element);
       }
     });
+
+    renderAppFeed();
   </script>
 </body>
 </html>
