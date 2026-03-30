@@ -2562,9 +2562,7 @@
           </div>
           <div>
             <div class="small-label">Crowd breakdown</div>
-            <div style="margin-top:10px;">
-              ${stats.genderPercentages.map((item) => `<span class="crowd-pill">${escapeHtml(item.label)} ${item.percent}%</span>`).join("")}
-            </div>
+            <p class="helper" style="margin-top:10px;">${stats.genderPercentages.map((item) => `${escapeHtml(item.label)} ${item.percent}%`).join(" · ")}</p>
           </div>
           <div>
             <div class="small-label">Top attendee interests</div>
