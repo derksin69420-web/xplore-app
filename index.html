@@ -1329,6 +1329,9 @@
     }
 
     state.events = normalizeLoadedEvents(state.events);
+    if (state.events.length) {
+      saveJSON(STORAGE_KEYS.events, state.events);
+    }
 
     function showToast(message) {
       toastEl.textContent = message;
@@ -1430,6 +1433,28 @@
         }
         return `${line} I'd do this kind of ${category.toLowerCase()} event again.`;
       });
+    }
+
+    function sanitizePublicSnippet(text) {
+      const cleaned = String(text || "").trim().replace(/\s+/g, " ");
+      if (!cleaned) return "";
+      if (/@|https?:\/\/|www\.|\b\d{3}[-.\s]?\d{3}[-.\s]?\d{4}\b/.test(cleaned)) return "";
+      const withoutNumbers = cleaned.replace(/\b\d{1,2}\b/g, "");
+      const withoutQuotedNames = withoutNumbers.replace(/\b[A-Z][a-z]{2,}\b/g, "someone");
+      return withoutQuotedNames.slice(0, 160).trim();
+    }
+
+    function buildLocalAnonymousSnippet(event, review) {
+      if (review.meetPeople === "Yes" && Number(review.starRating) >= 4) {
+        return `Easy to connect here because the ${event.category.toLowerCase()} activity gave everyone a natural way to start talking.`;
+      }
+      if (review.meetPeople === "Somewhat") {
+        return `Good if you want a softer social setting where conversation can build gradually around the activity.`;
+      }
+      if (review.recommend === "Yes") {
+        return `Worth trying if you like ${event.category.toLowerCase()} events with a little structure and a welcoming crowd.`;
+      }
+      return `The event itself was solid, but this kind of setting may work better if you already enjoy the activity first.`;
     }
 
     function createSeedPublicStats(event) {
@@ -1777,6 +1802,63 @@
       return state.events.filter((event) => state.uiState.statusById[event.id] === "Went");
     }
 
+    function userReviewForAggregation(eventId) {
+      const review = state.reviews[eventId];
+      if (!review || !review.savedAt || !state.profile || !review.starRating) return null;
+      const event = state.events.find((item) => item.id === eventId);
+      return {
+        starRating: Number(review.starRating),
+        metPeople: review.meetPeople,
+        recommend: review.recommend,
+        publicSnippet: sanitizePublicSnippet(review.publicSnippet) || (event ? buildLocalAnonymousSnippet(event, review) : ""),
+        ageBucket: ageBucket(state.profile.age),
+        interests: state.profile.interests
+      };
+    }
+
+    function aggregatePublicStats(event) {
+      const seed = event.publicStatsSeed || createSeedPublicStats(event);
+      const localReview = userReviewForAggregation(event.id);
+      const ageBuckets = { ...seed.ageBuckets };
+      const interestCounts = { ...seed.interestCounts };
+      const snippets = [...(seed.snippets || [])];
+      let count = seed.count || 0;
+      let starSum = seed.starSum || 0;
+      let metCount = seed.metCount || 0;
+      let recommendCount = seed.recommendCount || 0;
+
+      if (localReview) {
+        count += 1;
+        starSum += localReview.starRating;
+        if (localReview.meetPeople === "Yes") metCount += 1;
+        if (localReview.meetPeople === "Somewhat") metCount += 0.5;
+        if (localReview.recommend === "Yes") recommendCount += 1;
+        ageBuckets[localReview.ageBucket] = (ageBuckets[localReview.ageBucket] || 0) + 1;
+        localReview.interests.forEach((interest) => {
+          interestCounts[interest] = (interestCounts[interest] || 0) + 1;
+        });
+        if (localReview.publicSnippet) {
+          snippets.unshift(localReview.publicSnippet);
+        }
+      }
+
+      const topAgeRange = Object.entries(ageBuckets).sort((a, b) => b[1] - a[1])[0]?.[0] || "22-29";
+      const topInterests = Object.entries(interestCounts)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 3)
+        .map(([interest]) => interest);
+
+      return {
+        count,
+        averageRating: count ? (starSum / count) : 0,
+        metPercent: count ? Math.round((metCount / count) * 100) : 0,
+        recommendPercent: count ? Math.round((recommendCount / count) * 100) : 0,
+        topAgeRange,
+        topInterests,
+        snippets: snippets.filter(Boolean).slice(0, 4)
+      };
+    }
+
     function recommendedFromReviews() {
       const reviewEntries = Object.entries(state.reviews);
       if (!reviewEntries.length) return [];
@@ -1880,6 +1962,7 @@
       state.reviews = {};
       state.uiState = { skippedIds: [], saved: {}, statusById: {}, signupLinks: {}, signupLoading: {}, onboardingDraft: { ...onboardingDraft(), apiKey: getApiKey() }, learningSummary: "", learningGeneratedFromReviewCount: 0 };
       state.activeTab = "discover";
+      state.selectedEventId = null;
       render();
     }
 
@@ -1912,16 +1995,18 @@
       render();
     }
 
-    function updateReview(eventId, patch) {
+    function updateReview(eventId, patch, shouldRender = true) {
       state.reviews[eventId] = { ...(state.reviews[eventId] || {}), ...patch };
       saveState();
-      render();
+      if (shouldRender) {
+        render();
+      }
     }
 
     function submitReview(eventId) {
       const review = state.reviews[eventId] || {};
-      if (!review.meetPeople || !review.recommend) {
-        showToast("Add both ratings before saving your review.");
+      if (!review.meetPeople || !review.recommend || !review.starRating) {
+        showToast("Add your star rating and both responses before saving your review.");
         return;
       }
       state.reviews[eventId] = { ...review, savedAt: new Date().toISOString() };
@@ -2027,6 +2112,121 @@
 
     function renderMatchDots(count) {
       return "●".repeat(count) + "○".repeat(5 - count);
+    }
+
+    function renderStars(value) {
+      const rounded = Math.round(value);
+      return "★".repeat(rounded) + "☆".repeat(5 - rounded);
+    }
+
+    function publicStatsMini(event) {
+      const stats = aggregatePublicStats(event);
+      return `
+        <div class="community-mini">
+          <strong>${stats.averageRating.toFixed(1)} ${renderStars(stats.averageRating)}</strong>
+          <span class="helper">${stats.count} people went</span>
+          <button class="detail-link" data-open-detail="${event.id}">See who went</button>
+        </div>
+      `;
+    }
+
+    function publicStatsCard(event) {
+      const stats = aggregatePublicStats(event);
+      return `
+        <section class="stats-card">
+          <div class="stats-head">
+            <div>
+              <span class="tiny-kicker" style="margin-bottom:8px;">See who went</span>
+              <h4>Anonymous community stats</h4>
+              <p class="helper">Based on ${stats.count} Xplore users</p>
+            </div>
+            <div class="stats-rating">${stats.averageRating.toFixed(1)} ${renderStars(stats.averageRating)}</div>
+          </div>
+          <div class="stats-grid">
+            <div class="stats-box">
+              <strong>Mostly ${escapeHtml(stats.topAgeRange)}</strong>
+              <span>Typical age range among attendees</span>
+            </div>
+            <div class="stats-box">
+              <strong>${stats.metPercent}% clicked with people</strong>
+              <span>Reported meeting at least someone they connected with</span>
+            </div>
+            <div class="stats-box">
+              <strong>${stats.recommendPercent}% would recommend it</strong>
+              <span>Would tell a friend to try this kind of event</span>
+            </div>
+            <div class="stats-box">
+              <strong>${stats.count} attended</strong>
+              <span>Anonymous participation used in this event's community summary</span>
+            </div>
+          </div>
+          <div>
+            <div class="small-label">Top attendee interests</div>
+            <div class="interest-row" style="margin-top:10px;">
+              ${stats.topInterests.map((interest) => `<span class="interest-badge">${escapeHtml(interest)}</span>`).join("")}
+            </div>
+          </div>
+          <div>
+            <div class="small-label">Anonymous review snippets</div>
+            <div class="stats-snippets" style="margin-top:10px;">
+              ${stats.snippets.map((snippet) => `<div class="snippet">“${escapeHtml(snippet)}”</div>`).join("")}
+            </div>
+          </div>
+          <div class="privacy-note">🔒 All reviews are anonymous</div>
+        </section>
+      `;
+    }
+
+    function eventDetailModal() {
+      const event = state.events.find((item) => item.id === state.selectedEventId);
+      if (!event) return "";
+      const status = state.uiState.statusById[event.id] || "Interested";
+      const review = state.reviews[event.id] || {};
+      const signupData = state.uiState.signupLinks[event.id];
+      const isSaved = Boolean(state.uiState.saved[event.id]);
+      return `
+        <div class="detail-overlay" id="detail-overlay">
+          <div class="detail-modal panel fade-in" role="dialog" aria-modal="true" aria-label="${escapeHtml(event.name)} details">
+            <div class="detail-top">
+              <div>
+                <span class="tiny-kicker">${escapeHtml(event.category)} in ${escapeHtml(event.neighborhood)}</span>
+                <h3>${escapeHtml(event.emoji)} ${escapeHtml(event.name)}</h3>
+                <div class="event-meta">
+                  <span class="meta-pill">${escapeHtml(event.dateTime)}</span>
+                  <span class="meta-pill">${escapeHtml(event.venue)}</span>
+                  <span class="category-pill">${renderMatchDots(event.matchDots)} match</span>
+                </div>
+              </div>
+              <button class="detail-close" id="close-detail" aria-label="Close details">✕</button>
+            </div>
+            <div class="detail-body">
+              <section class="panel section-card">
+                <h3>About this event</h3>
+                <p>${escapeHtml(event.description)}</p>
+                <div class="button-row" style="margin-top:14px;">
+                  ${isSaved
+                    ? `<button class="btn-secondary" data-signup-id="${event.id}">${signupData ? "Refresh Signup Link" : "Find Signup Link"}</button>`
+                    : `<button class="btn-primary" data-event-action="interested" data-event-id="${event.id}">I'm Interested</button><button class="btn-secondary" data-event-action="skip" data-event-id="${event.id}">Skip</button>`
+                  }
+                  ${signupData ? `<a class="btn-soft" style="text-decoration:none; display:inline-flex; align-items:center; justify-content:center;" href="${escapeHtml(signupData.url)}" target="_blank" rel="noopener noreferrer">Open Signup Link</a>` : ""}
+                </div>
+                ${isSaved ? `
+                  <div style="margin-top:14px;">
+                    <div class="small-label">Status tracker</div>
+                    <div class="status-row">
+                      ${STATUS_FLOW.map((step) => `
+                        <button class="status-chip ${status === step ? "active" : ""}" data-status-id="${event.id}" data-status-value="${step}">${step}</button>
+                      `).join("")}
+                    </div>
+                  </div>
+                ` : ""}
+                ${status === "Went" ? renderReviewForm(event, review) : ""}
+              </section>
+              ${publicStatsCard(event)}
+            </div>
+          </div>
+        </div>
+      `;
     }
 
     function escapeHtml(value) {
@@ -2203,14 +2403,17 @@
               <span>Sounds like my crowd</span>
               <span class="match-dots" aria-label="${event.matchDots} out of 5 match">${renderMatchDots(event.matchDots)}</span>
             </div>
+            ${savedMode ? "" : publicStatsMini(event)}
             ${!savedMode && !historyMode ? `
               <div class="event-actions">
                 <button class="btn-primary" data-event-action="interested" data-event-id="${event.id}">I'm Interested</button>
                 <button class="btn-secondary" data-event-action="skip" data-event-id="${event.id}">Skip</button>
+                <button class="btn-soft" data-open-detail="${event.id}">View Details</button>
               </div>
             ` : ""}
             ${savedMode ? `
               <div>
+                ${publicStatsCard(event)}
                 <div class="small-label">Status tracker</div>
                 <div class="status-row">
                   ${STATUS_FLOW.map((step) => `
@@ -2219,6 +2422,7 @@
                 </div>
                 <div class="saved-actions">
                   <button class="btn-secondary" data-signup-id="${event.id}">${signupData ? "Refresh Signup Link" : "Find Signup Link"}</button>
+                  <button class="btn-soft" data-open-detail="${event.id}">View Details</button>
                   ${signupData ? `<a class="btn-soft" style="text-decoration:none; display:inline-flex; align-items:center; justify-content:center;" href="${escapeHtml(signupData.url)}" target="_blank" rel="noopener noreferrer">Open Link</a>` : ""}
                 </div>
                 ${isSignupLoading ? `<div class="loading-row" style="margin-top: 12px;">Searching the web for a likely signup page</div>` : ""}
@@ -2243,6 +2447,14 @@
         <div class="review-card">
           <div class="review-grid">
             <div>
+              <div class="small-label">How would you rate this event?</div>
+              <div class="stars-row">
+                ${[1, 2, 3, 4, 5].map((value) => `
+                  <button class="star-chip ${Number(review.starRating) === value ? "active" : ""}" data-review-id="${event.id}" data-review-field="starRating" data-review-value="${value}">${value} ${value === 1 ? "star" : "stars"}</button>
+                `).join("")}
+              </div>
+            </div>
+            <div>
               <div class="small-label">Did you meet people you clicked with?</div>
               <div class="review-options">
                 ${["Yes", "Somewhat", "No"].map((value) => `
@@ -2262,6 +2474,11 @@
               <label for="note-${event.id}">Private note</label>
               <textarea id="note-${event.id}" data-review-note="${event.id}" placeholder="What felt easy here? Who would you bring next time?">${escapeHtml(review.note || "")}</textarea>
             </div>
+            <div class="field-group">
+              <label for="public-note-${event.id}">Anonymous snippet for the community card</label>
+              <textarea id="public-note-${event.id}" data-review-public-note="${event.id}" placeholder="Optional. Keep it general so it stays anonymous.">${escapeHtml(review.publicSnippet || "")}</textarea>
+            </div>
+            <div class="privacy-note">🔒 All reviews are anonymous</div>
             <div class="button-row">
               <button class="btn-primary" data-review-save="${event.id}">Save Review</button>
             </div>
@@ -2494,12 +2711,14 @@
               </button>
             `).join("")}
           </nav>
+          ${state.selectedEventId ? eventDetailModal() : ""}
         </div>
       `;
 
       app.querySelectorAll("[data-nav]").forEach((button) => {
         button.addEventListener("click", () => {
           state.activeTab = button.dataset.nav;
+          state.selectedEventId = null;
           render();
         });
       });
@@ -2507,6 +2726,7 @@
       app.querySelectorAll("[data-tab-jump]").forEach((button) => {
         button.addEventListener("click", () => {
           state.activeTab = button.dataset.tabJump;
+          state.selectedEventId = null;
           render();
         });
       });
@@ -2532,12 +2752,41 @@
       });
 
       app.querySelectorAll("[data-review-note]").forEach((textarea) => {
-        textarea.addEventListener("input", () => updateReview(textarea.dataset.reviewNote, { note: textarea.value }));
+        textarea.addEventListener("input", () => updateReview(textarea.dataset.reviewNote, { note: textarea.value }, false));
+      });
+
+      app.querySelectorAll("[data-review-public-note]").forEach((textarea) => {
+        textarea.addEventListener("input", () => updateReview(textarea.dataset.reviewPublicNote, { publicSnippet: textarea.value }, false));
       });
 
       app.querySelectorAll("[data-review-save]").forEach((button) => {
         button.addEventListener("click", () => submitReview(button.dataset.reviewSave));
       });
+
+      app.querySelectorAll("[data-open-detail]").forEach((button) => {
+        button.addEventListener("click", () => {
+          state.selectedEventId = button.dataset.openDetail;
+          render();
+        });
+      });
+
+      const closeDetail = document.getElementById("close-detail");
+      if (closeDetail) {
+        closeDetail.addEventListener("click", () => {
+          state.selectedEventId = null;
+          render();
+        });
+      }
+
+      const detailOverlay = document.getElementById("detail-overlay");
+      if (detailOverlay) {
+        detailOverlay.addEventListener("click", (event) => {
+          if (event.target.id === "detail-overlay") {
+            state.selectedEventId = null;
+            render();
+          }
+        });
+      }
 
       app.querySelectorAll("[data-pref-interest]").forEach((button) => {
         button.addEventListener("click", () => togglePreferenceInterest(button.dataset.prefInterest));
