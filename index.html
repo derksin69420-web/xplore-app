@@ -578,6 +578,28 @@
       color: var(--success);
     }
 
+    .cost-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      font-size: 0.82rem;
+      font-weight: 800;
+      white-space: nowrap;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.55);
+    }
+
+    .cost-pill.free {
+      background: rgba(63, 155, 104, 0.14);
+      color: #2f8658;
+    }
+
+    .cost-pill.paid {
+      background: rgba(111, 104, 96, 0.12);
+      color: #67584d;
+    }
+
     .event-body {
       padding: 0 20px 18px;
       color: var(--muted);
@@ -616,6 +638,34 @@
 
     .event-actions button {
       flex: 1 1 140px;
+    }
+
+    .event-actions a,
+    .saved-actions a {
+      flex: 1 1 140px;
+    }
+
+    .action-link {
+      min-height: 48px;
+      border-radius: 16px;
+      padding: 12px 18px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease, opacity 0.18s ease;
+    }
+
+    .action-link:hover {
+      transform: translateY(-1px);
+    }
+
+    .btn-map {
+      background: #fff5ea;
+      color: #8b5637;
+      border: 1px solid rgba(188, 130, 86, 0.16);
     }
 
     .sidebar-card {
@@ -1371,6 +1421,165 @@
       return `${target[0]}-${target[1]}`;
     }
 
+    function categoryCost(category) {
+      const costs = {
+        Golf: "$20",
+        Tennis: "$15",
+        Hiking: "Free",
+        Yoga: "$20",
+        Cooking: "$65",
+        Art: "$28",
+        Music: "$18",
+        Reading: "Free",
+        Running: "Free",
+        Cycling: "Free",
+        Photography: "$22",
+        Gaming: "$12",
+        Trivia: "Free",
+        Volunteering: "Free",
+        "Rock Climbing": "$25",
+        Dance: "$18",
+        Film: "$14",
+        "Food & Drinks": "$24",
+        "Language Exchange": "Free",
+        Fitness: "$20/month",
+        Surfing: "$35",
+        "Board Games": "$10",
+        Coding: "Free",
+        Entrepreneurship: "Free"
+      };
+      return costs[category] || "$15";
+    }
+
+    function signupBaseForCategory(category) {
+      const sites = {
+        Golf: "https://www.golfgenius.com/leagues/",
+        Tennis: "https://www.clubautomation.com/calendar/",
+        Hiking: "https://www.eventbrite.com/e/",
+        Yoga: "https://www.mindbodyonline.com/explore/locations/",
+        Cooking: "https://www.cookingmatters.org/classes/",
+        Art: "https://www.eventbrite.com/e/",
+        Music: "https://www.eventbrite.com/e/",
+        Reading: "https://www.eventbrite.com/e/",
+        Running: "https://www.eventbrite.com/e/",
+        Cycling: "https://www.eventbrite.com/e/",
+        Photography: "https://www.eventbrite.com/e/",
+        Gaming: "https://www.eventbrite.com/e/",
+        Trivia: "https://www.eventbrite.com/e/",
+        Volunteering: "https://www.eventbrite.com/e/",
+        "Rock Climbing": "https://www.rockgympro.com/b/widget/",
+        Dance: "https://www.mindbodyonline.com/explore/locations/",
+        Film: "https://www.eventbrite.com/e/",
+        "Food & Drinks": "https://www.eventbrite.com/e/",
+        "Language Exchange": "https://www.eventbrite.com/e/",
+        Fitness: "https://www.mindbodyonline.com/explore/locations/",
+        Surfing: "https://www.eventbrite.com/e/",
+        "Board Games": "https://www.eventbrite.com/e/",
+        Coding: "https://lu.ma/",
+        Entrepreneurship: "https://lu.ma/"
+      };
+      return sites[category] || "https://www.eventbrite.com/e/";
+    }
+
+    function cityStreetBook(city) {
+      return {
+        Dallas: {
+          Uptown: "2615 McKinney Ave, Dallas, TX 75204",
+          Lakewood: "8300 E Lawther Dr, Dallas, TX 75218",
+          "Bishop Arts": "408 N Bishop Ave, Dallas, TX 75208",
+          "Deep Ellum": "2633 Main St, Dallas, TX 75226",
+          "Oak Cliff": "634 W Davis St, Dallas, TX 75208",
+          Downtown: "1500 Jackson St, Dallas, TX 75201",
+          "Trinity Groves": "3011 Gulden Ln, Dallas, TX 75212",
+          "Knox/Henderson": "3127 Knox St, Dallas, TX 75205",
+          "Lower Greenville": "1902 Greenville Ave, Dallas, TX 75206",
+          "East Dallas": "4711 Reiger Ave, Dallas, TX 75246",
+          "Design District": "120 Turtle Creek Blvd, Dallas, TX 75207"
+        },
+        "New York": {
+          "West Village": "601 W 26th St, New York, NY 10001",
+          "Park Slope": "95 Prospect Park West, Brooklyn, NY 11215",
+          Williamsburg: "136 Metropolitan Ave, Brooklyn, NY 11249",
+          Midtown: "476 5th Ave, New York, NY 10018",
+          Gowanus: "175 2nd Ave, Brooklyn, NY 11215",
+          Astoria: "19 19th St, Astoria, NY 11105",
+          Chelsea: "115 W 18th St, New York, NY 10011",
+          "Upper West Side": "500 W 70th St, New York, NY 10023",
+          Koreatown: "34 W 32nd St, New York, NY 10001",
+          SoHo: "153 Prince St, New York, NY 10012",
+          "Lower East Side": "95 Orchard St, New York, NY 10002",
+          DUMBO: "30 Washington St, Brooklyn, NY 11201"
+        },
+        "Los Angeles": {
+          "Silver Lake": "3701 Sunset Blvd, Los Angeles, CA 90026",
+          Venice: "1800 Ocean Front Walk, Venice, CA 90291",
+          "Los Feliz": "4730 Crystal Springs Dr, Los Angeles, CA 90027",
+          "Arts District": "821 Traction Ave, Los Angeles, CA 90013",
+          "Santa Monica": "1450 Ocean Ave, Santa Monica, CA 90401",
+          "Culver City": "8850 Washington Blvd, Culver City, CA 90232",
+          Pasadena: "16 N Fair Oaks Ave, Pasadena, CA 91103",
+          "Echo Park": "1632 Bellevue Ave, Los Angeles, CA 90026",
+          Larchmont: "5750 Melrose Ave, Los Angeles, CA 90038",
+          "Highland Park": "5021 York Blvd, Los Angeles, CA 90042",
+          Koreatown: "3525 W 8th St, Los Angeles, CA 90005",
+          Hollywood: "6067 Sunset Blvd, Los Angeles, CA 90028"
+        },
+        Chicago: {
+          "Lincoln Park": "1601 N Lake Shore Dr, Chicago, IL 60614",
+          "Logan Square": "3020 W Diversey Ave, Chicago, IL 60647",
+          "Wicker Park": "1949 N Hoyne Ave, Chicago, IL 60647",
+          "South Loop": "700 S Dearborn St, Chicago, IL 60605",
+          "West Town": "2115 W Chicago Ave, Chicago, IL 60622",
+          Pilsen: "1821 S Halsted St, Chicago, IL 60608",
+          Lakeview: "3700 N Clark St, Chicago, IL 60613",
+          "River North": "328 N Carpenter St, Chicago, IL 60607",
+          "Old Town": "375 W Elm St, Chicago, IL 60610",
+          Andersonville: "5338 N Clark St, Chicago, IL 60640",
+          Uptown: "4810 N Broadway, Chicago, IL 60640",
+          "The Loop": "Block 37, 108 N State St, Chicago, IL 60602"
+        },
+        Austin: {
+          Downtown: "900 W Riverside Dr, Austin, TX 78704",
+          "South Congress": "1511 S Congress Ave, Austin, TX 78704",
+          Mueller: "1900 Aldrich St, Austin, TX 78723",
+          "East Austin": "1111 E 6th St, Austin, TX 78702",
+          Zilker: "2100 Barton Springs Rd, Austin, TX 78704",
+          Springdale: "979 Springdale Rd, Austin, TX 78702",
+          "Hyde Park": "411 E 43rd St, Austin, TX 78751",
+          "Barton Hills": "2201 Barton Springs Rd, Austin, TX 78746",
+          "East Cesar Chavez": "1701 E Cesar Chavez St, Austin, TX 78702",
+          "Rainey Street": "72 Rainey St, Austin, TX 78701",
+          Govalle: "5200 Bolm Rd, Austin, TX 78721"
+        }
+      };
+    }
+
+    function eventAddressFor(event, city) {
+      if (event.address) return event.address;
+      const streetBook = cityStreetBook(city);
+      return streetBook[city]?.[event.neighborhood] || `${event.venue}, ${event.neighborhood}, ${city}`;
+    }
+
+    function signupUrlFor(event) {
+      if (event.signupUrl) return event.signupUrl;
+      const slug = slugify(`${event.name}-${event.city}`);
+      const cost = event.cost || categoryCost(event.category);
+      const base = isFreeCost(cost) ? "https://www.eventbrite.com/e/" : signupBaseForCategory(event.category);
+      return `${base}${slug}`;
+    }
+
+    function mapsUrlFor(event) {
+      return `https://maps.google.com/?q=${encodeURIComponent(event.address)}`;
+    }
+
+    function isFreeCost(cost) {
+      return String(cost || "").toLowerCase() === "free";
+    }
+
+    function shareTextFor(event) {
+      return `Hey! Found this on Xplore 🧭\n${event.name} - ${event.dateTime} at ${event.venue}. Thought you'd be into it!`;
+    }
+
     function categoryRelatedInterests(category) {
       const map = {
         Golf: ["Golf", "Fitness", "Food & Drinks", "Running"],
@@ -1497,10 +1706,20 @@
     }
 
     function normalizeLoadedEvents(events) {
-      return (events || []).map((event) => ({
-        ...event,
-        publicStatsSeed: event.publicStatsSeed || createSeedPublicStats(event)
-      }));
+      return (events || []).map((event) => {
+        const city = event.city || inferFallbackCity(event.city || "");
+        const normalized = {
+          ...event,
+          city,
+          cost: event.cost || categoryCost(event.category),
+          address: eventAddressFor(event, city),
+          signupUrl: signupUrlFor({ ...event, city })
+        };
+        return {
+          ...normalized,
+          publicStatsSeed: event.publicStatsSeed || createSeedPublicStats(normalized)
+        };
+      });
     }
 
     function titleCaseCity(city) {
@@ -1638,7 +1857,10 @@
         interestTags: allTags,
         matchDots: dotScore,
         matchReason: overlapCount > 1 ? `${overlapCount} of your interests line up here` : `This fits your ${event.category.toLowerCase()} vibe`,
-        signupLink: event.signupLink || ""
+        signupLink: event.signupLink || "",
+        cost: event.cost || categoryCost(event.category),
+        address: eventAddressFor(event, city),
+        signupUrl: signupUrlFor({ ...event, city })
       };
       return {
         ...enriched,
@@ -1694,7 +1916,7 @@
       const prompt = [
         "Generate exactly 12 realistic local events as JSON.",
         "Return ONLY a JSON array.",
-        "Each object must include: name, emoji, category, dateTime, neighborhood, venue, description, interestTags.",
+        "Each object must include: name, emoji, category, dateTime, neighborhood, venue, address, description, interestTags, cost, signupUrl.",
         "description must be exactly 2 sentences.",
         "interestTags must be an array of 1-3 interests chosen from this list:",
         INTERESTS.join(", "),
@@ -1704,6 +1926,9 @@
         `Why using Xplore: ${profile.reason}.`,
         "Make the events feel real and specific with plausible venues and neighborhoods.",
         "Dates should be in the next 30 days and formatted like 'Thu, Apr 18 • 6:30 PM'.",
+        "address should be a plausible full street address.",
+        "cost should be like 'Free', '$15', or '$20/month'.",
+        "signupUrl should look like a plausible event signup page URL.",
         "Prioritize activities where people naturally talk while doing something.",
         "Do not include online events."
       ].join(" ");
@@ -1726,8 +1951,11 @@
         dateTime: event.dateTime,
         neighborhood: event.neighborhood || "Local favorite",
         venue: event.venue || "Neighborhood spot",
+        address: event.address,
         description: event.description,
-        interestTags: Array.isArray(event.interestTags) ? event.interestTags.filter((tag) => INTERESTS.includes(tag)) : [event.category]
+        interestTags: Array.isArray(event.interestTags) ? event.interestTags.filter((tag) => INTERESTS.includes(tag)) : [event.category],
+        cost: event.cost,
+        signupUrl: event.signupUrl
       }, profile, cityLabel, index + 2));
     }
 
@@ -2042,6 +2270,41 @@
       }
     }
 
+    async function handleShare(eventId) {
+      const event = state.events.find((item) => item.id === eventId);
+      if (!event) return;
+      const shareText = shareTextFor(event);
+      const mobileLike = window.matchMedia("(max-width: 768px)").matches || /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+      if (mobileLike && navigator.share) {
+        try {
+          await navigator.share({
+            title: event.name,
+            text: `${event.description}\n\nFound this on Xplore!\n\n${shareText}`
+          });
+          return;
+        } catch (error) {
+          if (error && error.name === "AbortError") return;
+        }
+      }
+
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          await navigator.clipboard.writeText(shareText);
+        } else {
+          const helper = document.createElement("textarea");
+          helper.value = shareText;
+          document.body.appendChild(helper);
+          helper.select();
+          document.execCommand("copy");
+          document.body.removeChild(helper);
+        }
+        showToast("Copied!");
+      } catch (error) {
+        showToast("Couldn't copy that share text just now.");
+      }
+    }
+
     function updatePreferences() {
       const firstName = document.getElementById("prefs-first-name").value.trim();
       const age = Number(document.getElementById("prefs-age").value);
@@ -2194,6 +2457,7 @@
                 <div class="event-meta">
                   <span class="meta-pill">${escapeHtml(event.dateTime)}</span>
                   <span class="meta-pill">${escapeHtml(event.venue)}</span>
+                  <span class="meta-pill">${escapeHtml(event.address)}</span>
                   <span class="category-pill">${renderMatchDots(event.matchDots)} match</span>
                 </div>
               </div>
@@ -2204,11 +2468,15 @@
                 <h3>About this event</h3>
                 <p>${escapeHtml(event.description)}</p>
                 <div class="button-row" style="margin-top:14px;">
+                  <span class="cost-pill ${isFreeCost(event.cost) ? "free" : "paid"}">${escapeHtml(event.cost)}</span>
+                </div>
+                <p class="helper" style="margin-top:8px;">Full address: ${escapeHtml(event.address)}</p>
+                <div class="button-row" style="margin-top:14px;">
                   ${isSaved
-                    ? `<button class="btn-secondary" data-signup-id="${event.id}">${signupData ? "Refresh Signup Link" : "Find Signup Link"}</button>`
-                    : `<button class="btn-primary" data-event-action="interested" data-event-id="${event.id}">I'm Interested</button><button class="btn-secondary" data-event-action="skip" data-event-id="${event.id}">Skip</button>`
+                    ? `<a class="action-link btn-primary" href="${escapeHtml(event.signupUrl)}" target="_blank" rel="noopener noreferrer">Sign Up</a><a class="action-link btn-map" href="${escapeHtml(mapsUrlFor(event))}" target="_blank" rel="noopener noreferrer">📍 Get Directions</a><button class="btn-secondary" data-share-id="${event.id}">↗ Share</button>`
+                    : `<button class="btn-primary" data-event-action="interested" data-event-id="${event.id}">I'm Interested</button><a class="action-link btn-secondary" href="${escapeHtml(event.signupUrl)}" target="_blank" rel="noopener noreferrer">Sign Up</a><a class="action-link btn-map" href="${escapeHtml(mapsUrlFor(event))}" target="_blank" rel="noopener noreferrer">📍 Get Directions</a><button class="btn-soft" data-share-id="${event.id}">↗ Share</button><button class="btn-secondary" data-event-action="skip" data-event-id="${event.id}">Skip</button>`
                   }
-                  ${signupData ? `<a class="btn-soft" style="text-decoration:none; display:inline-flex; align-items:center; justify-content:center;" href="${escapeHtml(signupData.url)}" target="_blank" rel="noopener noreferrer">Open Signup Link</a>` : ""}
+                  ${signupData ? `<a class="action-link btn-soft" href="${escapeHtml(signupData.url)}" target="_blank" rel="noopener noreferrer">Open Found Signup Link</a>` : ""}
                 </div>
                 ${isSaved ? `
                   <div style="margin-top:14px;">
@@ -2390,10 +2658,13 @@
               <div class="event-meta">
                 <span class="category-pill">${escapeHtml(event.category)}</span>
                 <span class="meta-pill">${escapeHtml(event.dateTime)}</span>
-                <span class="meta-pill">${escapeHtml(event.venue)} · ${escapeHtml(event.neighborhood)}</span>
+                <span class="meta-pill">${escapeHtml(event.neighborhood)}</span>
               </div>
             </div>
-            ${savedMode || historyMode ? `<span class="status-pill">${escapeHtml(status)}</span>` : ""}
+            <div style="display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end;">
+              <span class="cost-pill ${isFreeCost(event.cost) ? "free" : "paid"}">${escapeHtml(event.cost)}</span>
+              ${savedMode || historyMode ? `<span class="status-pill">${escapeHtml(status)}</span>` : ""}
+            </div>
           </div>
           <div class="event-body">
             ${escapeHtml(event.description)}
@@ -2407,7 +2678,18 @@
             ${!savedMode && !historyMode ? `
               <div class="event-actions">
                 <button class="btn-primary" data-event-action="interested" data-event-id="${event.id}">I'm Interested</button>
+                <a class="action-link btn-secondary" href="${escapeHtml(event.signupUrl)}" target="_blank" rel="noopener noreferrer">Sign Up</a>
+                <a class="action-link btn-map" href="${escapeHtml(mapsUrlFor(event))}" target="_blank" rel="noopener noreferrer">📍 Get Directions</a>
+                <button class="btn-soft" data-share-id="${event.id}">↗ Share</button>
+                <button class="btn-soft" data-open-detail="${event.id}">View Details</button>
                 <button class="btn-secondary" data-event-action="skip" data-event-id="${event.id}">Skip</button>
+              </div>
+            ` : ""}
+            ${historyMode ? `
+              <div class="event-actions">
+                <a class="action-link btn-secondary" href="${escapeHtml(event.signupUrl)}" target="_blank" rel="noopener noreferrer">Sign Up</a>
+                <a class="action-link btn-map" href="${escapeHtml(mapsUrlFor(event))}" target="_blank" rel="noopener noreferrer">📍 Get Directions</a>
+                <button class="btn-soft" data-share-id="${event.id}">↗ Share</button>
                 <button class="btn-soft" data-open-detail="${event.id}">View Details</button>
               </div>
             ` : ""}
@@ -2421,9 +2703,12 @@
                   `).join("")}
                 </div>
                 <div class="saved-actions">
-                  <button class="btn-secondary" data-signup-id="${event.id}">${signupData ? "Refresh Signup Link" : "Find Signup Link"}</button>
+                  <a class="action-link btn-primary" href="${escapeHtml(event.signupUrl)}" target="_blank" rel="noopener noreferrer">Sign Up</a>
+                  <a class="action-link btn-map" href="${escapeHtml(mapsUrlFor(event))}" target="_blank" rel="noopener noreferrer">📍 Get Directions</a>
+                  <button class="btn-soft" data-share-id="${event.id}">↗ Share</button>
+                  <button class="btn-secondary" data-signup-id="${event.id}">${signupData ? "Refresh Found Link" : "Find Alternate Signup Link"}</button>
                   <button class="btn-soft" data-open-detail="${event.id}">View Details</button>
-                  ${signupData ? `<a class="btn-soft" style="text-decoration:none; display:inline-flex; align-items:center; justify-content:center;" href="${escapeHtml(signupData.url)}" target="_blank" rel="noopener noreferrer">Open Link</a>` : ""}
+                  ${signupData ? `<a class="action-link btn-soft" href="${escapeHtml(signupData.url)}" target="_blank" rel="noopener noreferrer">Open Found Link</a>` : ""}
                 </div>
                 ${isSignupLoading ? `<div class="loading-row" style="margin-top: 12px;">Searching the web for a likely signup page</div>` : ""}
                 ${signupData ? `<p class="helper" style="margin-top:12px;">${escapeHtml(signupData.summary || "Likely official signup page found.")}</p>` : ""}
@@ -2745,6 +3030,10 @@
 
       app.querySelectorAll("[data-signup-id]").forEach((button) => {
         button.addEventListener("click", () => handleSignupLink(button.dataset.signupId));
+      });
+
+      app.querySelectorAll("[data-share-id]").forEach((button) => {
+        button.addEventListener("click", () => handleShare(button.dataset.shareId));
       });
 
       app.querySelectorAll("[data-review-id]").forEach((button) => {
