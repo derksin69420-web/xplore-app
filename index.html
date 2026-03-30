@@ -878,6 +878,34 @@
       margin-bottom: 8px;
     }
 
+    .info-banner {
+      padding: 16px 18px;
+      border-radius: 20px;
+      background: linear-gradient(180deg, rgba(255, 244, 229, 0.96), rgba(255, 250, 242, 0.94));
+      border: 1px solid rgba(255, 187, 122, 0.24);
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: flex-start;
+    }
+
+    .info-banner p {
+      margin: 0;
+      color: #7b624f;
+      line-height: 1.6;
+      font-size: 0.92rem;
+    }
+
+    .banner-close {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.8);
+      color: #98613f;
+      flex-shrink: 0;
+      font-size: 1rem;
+    }
+
     .stats-snippets {
       display: grid;
       gap: 10px;
@@ -1356,7 +1384,7 @@
     const state = {
       activeTab: "discover",
       profile: loadJSON(STORAGE_KEYS.profile, null),
-      uiState: loadJSON(STORAGE_KEYS.state, { skippedIds: [], saved: {}, statusById: {}, signupLinks: {}, signupLoading: {}, onboardingDraft: null, learningSummary: "", learningGeneratedFromReviewCount: 0 }),
+      uiState: loadJSON(STORAGE_KEYS.state, { skippedIds: [], saved: {}, statusById: {}, signupLinks: {}, signupLoading: {}, onboardingDraft: null, learningSummary: "", learningGeneratedFromReviewCount: 0, demoBannerDismissed: false }),
       reviews: loadJSON(STORAGE_KEYS.reviews, {}),
       events: loadJSON(STORAGE_KEYS.events, []),
       openaiLoading: false,
@@ -1482,32 +1510,21 @@
 
     function signupBaseForCategory(category) {
       const sites = {
-        Golf: "https://www.golfgenius.com/leagues/",
-        Tennis: "https://www.clubautomation.com/calendar/",
-        Hiking: "https://www.eventbrite.com/e/",
-        Yoga: "https://www.mindbodyonline.com/explore/locations/",
-        Cooking: "https://www.cookingmatters.org/classes/",
-        Art: "https://www.eventbrite.com/e/",
-        Music: "https://www.eventbrite.com/e/",
-        Reading: "https://www.eventbrite.com/e/",
-        Running: "https://www.eventbrite.com/e/",
-        Cycling: "https://www.eventbrite.com/e/",
-        Photography: "https://www.eventbrite.com/e/",
-        Gaming: "https://www.eventbrite.com/e/",
-        Trivia: "https://www.eventbrite.com/e/",
-        Volunteering: "https://www.eventbrite.com/e/",
-        "Rock Climbing": "https://www.rockgympro.com/b/widget/",
-        Dance: "https://www.mindbodyonline.com/explore/locations/",
-        Film: "https://www.eventbrite.com/e/",
-        "Food & Drinks": "https://www.eventbrite.com/e/",
-        "Language Exchange": "https://www.eventbrite.com/e/",
-        Fitness: "https://www.mindbodyonline.com/explore/locations/",
-        Surfing: "https://www.eventbrite.com/e/",
-        "Board Games": "https://www.eventbrite.com/e/",
-        Coding: "https://lu.ma/",
-        Entrepreneurship: "https://lu.ma/"
+        Golf: "https://www.golfgenius.com/",
+        Yoga: "https://www.mindbodyonline.com/",
+        Fitness: "https://www.mindbodyonline.com/",
+        Cooking: "https://www.eventbrite.com/",
+        default: "https://www.eventbrite.com/"
       };
-      return sites[category] || "https://www.eventbrite.com/e/";
+      return sites[category] || sites.default;
+    }
+
+    function citySearchSlug(city) {
+      return slugify(titleCaseCity(city || "") || "local").replace(/-/g, "-");
+    }
+
+    function interestKeyword(category) {
+      return slugify((category || "events").replace(/&/g, "and"));
     }
 
     function cityStreetBook(city) {
@@ -1590,11 +1607,22 @@
     }
 
     function signupUrlFor(event) {
-      if (event.signupUrl) return event.signupUrl;
-      const slug = slugify(`${event.name}-${event.city}`);
       const cost = event.cost || categoryCost(event.category);
-      const base = isFreeCost(cost) ? "https://www.eventbrite.com/e/" : signupBaseForCategory(event.category);
-      return `${base}${slug}`;
+      const city = citySearchSlug(event.city);
+      const keyword = interestKeyword(event.category);
+      if (isFreeCost(cost)) {
+        return `https://www.eventbrite.com/d/${city}/${keyword}/`;
+      }
+      if (event.category === "Golf") {
+        return "https://www.golfgenius.com/";
+      }
+      if (event.category === "Yoga" || event.category === "Fitness") {
+        return "https://www.mindbodyonline.com/";
+      }
+      if (event.category === "Cooking") {
+        return `https://www.eventbrite.com/d/${city}/cooking-classes/`;
+      }
+      return `https://www.eventbrite.com/d/${city}/${keyword}/`;
     }
 
     function mapsUrlFor(event) {
@@ -2289,7 +2317,7 @@
       state.profile = null;
       state.events = [];
       state.reviews = {};
-      state.uiState = { skippedIds: [], saved: {}, statusById: {}, signupLinks: {}, signupLoading: {}, onboardingDraft: { ...onboardingDraft(), apiKey: getApiKey() }, learningSummary: "", learningGeneratedFromReviewCount: 0 };
+      state.uiState = { skippedIds: [], saved: {}, statusById: {}, signupLinks: {}, signupLoading: {}, onboardingDraft: { ...onboardingDraft(), apiKey: getApiKey() }, learningSummary: "", learningGeneratedFromReviewCount: 0, demoBannerDismissed: false };
       state.activeTab = "discover";
       state.selectedEventId = null;
       render();
@@ -2301,6 +2329,12 @@
       }
       saveState();
       showToast("Skipped for now. Another idea is waiting.");
+      render();
+    }
+
+    function dismissDemoBanner() {
+      state.uiState.demoBannerDismissed = true;
+      saveState();
       render();
     }
 
@@ -2587,6 +2621,7 @@
                   }
                   ${signupData ? `<a class="action-link btn-soft" href="${escapeHtml(signupData.url)}" target="_blank" rel="noopener noreferrer">Open Found Signup Link</a>` : ""}
                 </div>
+                <p class="helper" style="margin-top:10px;">In full version, links directly to event registration.</p>
                 ${isSaved ? `
                   <div style="margin-top:14px;">
                     <div class="small-label">Status tracker</div>
@@ -2806,6 +2841,7 @@
                 <button class="btn-secondary" data-event-action="skip" data-event-id="${event.id}">Skip</button>
               </div>
             ` : ""}
+            ${!savedMode && !historyMode ? `<p class="helper" style="margin-top:-2px;">In full version, links directly to event registration.</p>` : ""}
             ${historyMode ? `
               <div class="event-actions">
                 <a class="action-link btn-secondary" href="${escapeHtml(event.signupUrl)}" target="_blank" rel="noopener noreferrer">Sign Up</a>
@@ -2814,6 +2850,7 @@
                 <button class="btn-soft" data-open-detail="${event.id}">View Details</button>
               </div>
             ` : ""}
+            ${historyMode ? `<p class="helper" style="margin-top:-2px;">In full version, links directly to event registration.</p>` : ""}
             ${savedMode ? `
               <div>
                 ${publicStatsCard(event)}
@@ -2831,6 +2868,7 @@
                   <button class="btn-soft" data-open-detail="${event.id}">View Details</button>
                   ${signupData ? `<a class="action-link btn-soft" href="${escapeHtml(signupData.url)}" target="_blank" rel="noopener noreferrer">Open Found Link</a>` : ""}
                 </div>
+                <p class="helper" style="margin-top:10px;">In full version, links directly to event registration.</p>
                 ${isSignupLoading ? `<div class="loading-row" style="margin-top: 12px;">Searching the web for a likely signup page</div>` : ""}
                 ${signupData ? `<p class="helper" style="margin-top:12px;">${escapeHtml(signupData.summary || "Likely official signup page found.")}</p>` : ""}
                 ${status === "Went" ? renderReviewForm(event, review) : ""}
@@ -2912,6 +2950,12 @@
           </section>
           <div class="content-grid">
             <div class="stack">
+              ${!getApiKey() && !state.uiState.demoBannerDismissed ? `
+                <section class="info-banner panel">
+                  <p>🧭 Demo mode — showing curated events matched to your interests. In the full version, Xplore connects to local event platforms like Eventbrite, Meetup, and partner venues to find real events near you in real time.</p>
+                  <button class="banner-close" id="dismiss-demo-banner" aria-label="Dismiss demo info">✕</button>
+                </section>
+              ` : ""}
               ${state.openaiLoading ? `
                 <section class="panel section-card">
                   <div class="loading-row">Building a warm, city-specific event feed for you</div>
@@ -3212,6 +3256,8 @@
       if (refreshMain) refreshMain.addEventListener("click", regenerateEvents);
       const refreshInline = document.getElementById("refresh-events-inline");
       if (refreshInline) refreshInline.addEventListener("click", regenerateEvents);
+      const dismissDemoBannerButton = document.getElementById("dismiss-demo-banner");
+      if (dismissDemoBannerButton) dismissDemoBannerButton.addEventListener("click", dismissDemoBanner);
 
       const savePrefs = document.getElementById("save-preferences");
       if (savePrefs) savePrefs.addEventListener("click", updatePreferences);
