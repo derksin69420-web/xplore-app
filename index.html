@@ -661,7 +661,7 @@
             <span class="brand-mark" aria-hidden="true"></span>
             <span>Xplore</span>
           </a>
-          <a class="nav-cta" href="https://xplore-app-five.vercel.app" target="_blank" rel="noopener noreferrer">Try Xplore Free</a>
+          <a class="nav-cta" href="https://xplore-app-five.vercel.app/" data-app-link>Try Xplore Free</a>
         </div>
 
         <div class="hero-grid">
@@ -670,7 +670,7 @@
             <h1>Find your people. Just show up.</h1>
             <p class="lead">Xplore finds local events and activities matched to your interests — so you meet people naturally, without the awkwardness of apps or the pressure of social media.</p>
             <div class="hero-actions">
-              <a class="btn btn-primary" href="https://xplore-app-five.vercel.app" target="_blank" rel="noopener noreferrer">Try Xplore Free</a>
+              <a class="btn btn-primary" href="https://xplore-app-five.vercel.app/" data-app-link>Try Xplore Free</a>
               <a class="btn btn-secondary" href="#how-it-works">See How It Works</a>
             </div>
           </div>
@@ -881,7 +881,7 @@
             <h2>Your people are already out there.</h2>
             <p>They're at the golf league, the cooking class, the trivia night. Xplore just helps you find them.</p>
             <div class="hero-actions" style="justify-content:center;">
-              <a class="btn btn-primary" href="https://xplore-app-five.vercel.app" target="_blank" rel="noopener noreferrer">Find Your First Event →</a>
+              <a class="btn btn-primary" href="https://xplore-app-five.vercel.app/" data-app-link>Find Your First Event →</a>
             </div>
             <div class="microcopy">Free to use • No account required • No social pressure</div>
           </div>
@@ -891,6 +891,13 @@
   </div>
 
   <script>
+    document.querySelectorAll("[data-app-link]").forEach((link) => {
+      link.addEventListener("click", (event) => {
+        event.preventDefault();
+        window.location.href = "https://xplore-app-five.vercel.app/";
+      });
+    });
+
     const observer = new IntersectionObserver((entries) => {
       entries.forEach((entry) => {
         if (entry.isIntersecting) {
