@@ -286,7 +286,8 @@
     }
 
     .field-group input,
-    .field-group textarea {
+    .field-group textarea,
+    .field-group select {
       width: 100%;
       border-radius: 16px;
       border: 1px solid var(--line);
@@ -298,7 +299,8 @@
     }
 
     .field-group input:focus,
-    .field-group textarea:focus {
+    .field-group textarea:focus,
+    .field-group select:focus {
       border-color: rgba(255, 122, 89, 0.48);
       box-shadow: 0 0 0 4px rgba(255, 122, 89, 0.12);
     }
@@ -578,6 +580,28 @@
       color: var(--success);
     }
 
+    .cost-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      font-size: 0.82rem;
+      font-weight: 800;
+      white-space: nowrap;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.55);
+    }
+
+    .cost-pill.free {
+      background: rgba(63, 155, 104, 0.14);
+      color: #2f8658;
+    }
+
+    .cost-pill.paid {
+      background: rgba(111, 104, 96, 0.12);
+      color: #67584d;
+    }
+
     .event-body {
       padding: 0 20px 18px;
       color: var(--muted);
@@ -616,6 +640,34 @@
 
     .event-actions button {
       flex: 1 1 140px;
+    }
+
+    .event-actions a,
+    .saved-actions a {
+      flex: 1 1 140px;
+    }
+
+    .action-link {
+      min-height: 48px;
+      border-radius: 16px;
+      padding: 12px 18px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease, opacity 0.18s ease;
+    }
+
+    .action-link:hover {
+      transform: translateY(-1px);
+    }
+
+    .btn-map {
+      background: #fff5ea;
+      color: #8b5637;
+      border: 1px solid rgba(188, 130, 86, 0.16);
     }
 
     .sidebar-card {
@@ -809,6 +861,49 @@
       color: var(--muted);
       font-size: 0.87rem;
       line-height: 1.5;
+    }
+
+    .crowd-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 12px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.84);
+      border: 1px solid rgba(188, 130, 86, 0.14);
+      color: #7a5d4b;
+      font-size: 0.86rem;
+      font-weight: 700;
+      margin-right: 8px;
+      margin-bottom: 8px;
+    }
+
+    .info-banner {
+      padding: 16px 18px;
+      border-radius: 20px;
+      background: linear-gradient(180deg, rgba(255, 244, 229, 0.96), rgba(255, 250, 242, 0.94));
+      border: 1px solid rgba(255, 187, 122, 0.24);
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: flex-start;
+    }
+
+    .info-banner p {
+      margin: 0;
+      color: #7b624f;
+      line-height: 1.6;
+      font-size: 0.92rem;
+    }
+
+    .banner-close {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.8);
+      color: #98613f;
+      flex-shrink: 0;
+      font-size: 1rem;
     }
 
     .stats-snippets {
@@ -1177,6 +1272,13 @@
       "Just moved"
     ];
 
+    const GENDER_OPTIONS = [
+      "Man",
+      "Woman",
+      "Nonbinary",
+      "Prefer not to say"
+    ];
+
     const STATUS_FLOW = ["Interested", "Signed Up", "Going", "Went"];
 
     const CITY_EVENT_BANK = {
@@ -1282,7 +1384,7 @@
     const state = {
       activeTab: "discover",
       profile: loadJSON(STORAGE_KEYS.profile, null),
-      uiState: loadJSON(STORAGE_KEYS.state, { skippedIds: [], saved: {}, statusById: {}, signupLinks: {}, signupLoading: {}, onboardingDraft: null, learningSummary: "", learningGeneratedFromReviewCount: 0 }),
+      uiState: loadJSON(STORAGE_KEYS.state, { skippedIds: [], saved: {}, statusById: {}, signupLinks: {}, signupLoading: {}, onboardingDraft: null, learningSummary: "", learningGeneratedFromReviewCount: 0, demoBannerDismissed: false }),
       reviews: loadJSON(STORAGE_KEYS.reviews, {}),
       events: loadJSON(STORAGE_KEYS.events, []),
       openaiLoading: false,
@@ -1293,6 +1395,11 @@
 
     const app = document.getElementById("app");
     const toastEl = document.getElementById("toast");
+
+    if (state.profile && !state.profile.gender) {
+      state.profile.gender = "Prefer not to say";
+      saveJSON(STORAGE_KEYS.profile, state.profile);
+    }
 
     function loadJSON(key, fallback) {
       try {
@@ -1329,6 +1436,9 @@
     }
 
     state.events = normalizeLoadedEvents(state.events);
+    if (state.events.length) {
+      saveJSON(STORAGE_KEYS.events, state.events);
+    }
 
     function showToast(message) {
       toastEl.textContent = message;
@@ -1368,6 +1478,165 @@
       return `${target[0]}-${target[1]}`;
     }
 
+    function categoryCost(category) {
+      const costs = {
+        Golf: "$20",
+        Tennis: "$15",
+        Hiking: "Free",
+        Yoga: "$20",
+        Cooking: "$65",
+        Art: "$28",
+        Music: "$18",
+        Reading: "Free",
+        Running: "Free",
+        Cycling: "Free",
+        Photography: "$22",
+        Gaming: "$12",
+        Trivia: "Free",
+        Volunteering: "Free",
+        "Rock Climbing": "$25",
+        Dance: "$18",
+        Film: "$14",
+        "Food & Drinks": "$24",
+        "Language Exchange": "Free",
+        Fitness: "$20/month",
+        Surfing: "$35",
+        "Board Games": "$10",
+        Coding: "Free",
+        Entrepreneurship: "Free"
+      };
+      return costs[category] || "$15";
+    }
+
+    function signupBaseForCategory(category) {
+      const sites = {
+        Golf: "https://www.golfgenius.com/",
+        Yoga: "https://www.mindbodyonline.com/",
+        Fitness: "https://www.mindbodyonline.com/",
+        Cooking: "https://www.eventbrite.com/",
+        default: "https://www.eventbrite.com/"
+      };
+      return sites[category] || sites.default;
+    }
+
+    function citySearchSlug(city) {
+      return slugify(titleCaseCity(city || "") || "local").replace(/-/g, "-");
+    }
+
+    function interestKeyword(category) {
+      return slugify((category || "events").replace(/&/g, "and"));
+    }
+
+    function cityStreetBook(city) {
+      return {
+        Dallas: {
+          Uptown: "2615 McKinney Ave, Dallas, TX 75204",
+          Lakewood: "8300 E Lawther Dr, Dallas, TX 75218",
+          "Bishop Arts": "408 N Bishop Ave, Dallas, TX 75208",
+          "Deep Ellum": "2633 Main St, Dallas, TX 75226",
+          "Oak Cliff": "634 W Davis St, Dallas, TX 75208",
+          Downtown: "1500 Jackson St, Dallas, TX 75201",
+          "Trinity Groves": "3011 Gulden Ln, Dallas, TX 75212",
+          "Knox/Henderson": "3127 Knox St, Dallas, TX 75205",
+          "Lower Greenville": "1902 Greenville Ave, Dallas, TX 75206",
+          "East Dallas": "4711 Reiger Ave, Dallas, TX 75246",
+          "Design District": "120 Turtle Creek Blvd, Dallas, TX 75207"
+        },
+        "New York": {
+          "West Village": "601 W 26th St, New York, NY 10001",
+          "Park Slope": "95 Prospect Park West, Brooklyn, NY 11215",
+          Williamsburg: "136 Metropolitan Ave, Brooklyn, NY 11249",
+          Midtown: "476 5th Ave, New York, NY 10018",
+          Gowanus: "175 2nd Ave, Brooklyn, NY 11215",
+          Astoria: "19 19th St, Astoria, NY 11105",
+          Chelsea: "115 W 18th St, New York, NY 10011",
+          "Upper West Side": "500 W 70th St, New York, NY 10023",
+          Koreatown: "34 W 32nd St, New York, NY 10001",
+          SoHo: "153 Prince St, New York, NY 10012",
+          "Lower East Side": "95 Orchard St, New York, NY 10002",
+          DUMBO: "30 Washington St, Brooklyn, NY 11201"
+        },
+        "Los Angeles": {
+          "Silver Lake": "3701 Sunset Blvd, Los Angeles, CA 90026",
+          Venice: "1800 Ocean Front Walk, Venice, CA 90291",
+          "Los Feliz": "4730 Crystal Springs Dr, Los Angeles, CA 90027",
+          "Arts District": "821 Traction Ave, Los Angeles, CA 90013",
+          "Santa Monica": "1450 Ocean Ave, Santa Monica, CA 90401",
+          "Culver City": "8850 Washington Blvd, Culver City, CA 90232",
+          Pasadena: "16 N Fair Oaks Ave, Pasadena, CA 91103",
+          "Echo Park": "1632 Bellevue Ave, Los Angeles, CA 90026",
+          Larchmont: "5750 Melrose Ave, Los Angeles, CA 90038",
+          "Highland Park": "5021 York Blvd, Los Angeles, CA 90042",
+          Koreatown: "3525 W 8th St, Los Angeles, CA 90005",
+          Hollywood: "6067 Sunset Blvd, Los Angeles, CA 90028"
+        },
+        Chicago: {
+          "Lincoln Park": "1601 N Lake Shore Dr, Chicago, IL 60614",
+          "Logan Square": "3020 W Diversey Ave, Chicago, IL 60647",
+          "Wicker Park": "1949 N Hoyne Ave, Chicago, IL 60647",
+          "South Loop": "700 S Dearborn St, Chicago, IL 60605",
+          "West Town": "2115 W Chicago Ave, Chicago, IL 60622",
+          Pilsen: "1821 S Halsted St, Chicago, IL 60608",
+          Lakeview: "3700 N Clark St, Chicago, IL 60613",
+          "River North": "328 N Carpenter St, Chicago, IL 60607",
+          "Old Town": "375 W Elm St, Chicago, IL 60610",
+          Andersonville: "5338 N Clark St, Chicago, IL 60640",
+          Uptown: "4810 N Broadway, Chicago, IL 60640",
+          "The Loop": "Block 37, 108 N State St, Chicago, IL 60602"
+        },
+        Austin: {
+          Downtown: "900 W Riverside Dr, Austin, TX 78704",
+          "South Congress": "1511 S Congress Ave, Austin, TX 78704",
+          Mueller: "1900 Aldrich St, Austin, TX 78723",
+          "East Austin": "1111 E 6th St, Austin, TX 78702",
+          Zilker: "2100 Barton Springs Rd, Austin, TX 78704",
+          Springdale: "979 Springdale Rd, Austin, TX 78702",
+          "Hyde Park": "411 E 43rd St, Austin, TX 78751",
+          "Barton Hills": "2201 Barton Springs Rd, Austin, TX 78746",
+          "East Cesar Chavez": "1701 E Cesar Chavez St, Austin, TX 78702",
+          "Rainey Street": "72 Rainey St, Austin, TX 78701",
+          Govalle: "5200 Bolm Rd, Austin, TX 78721"
+        }
+      };
+    }
+
+    function eventAddressFor(event, city) {
+      if (event.address) return event.address;
+      const streetBook = cityStreetBook(city);
+      return streetBook[city]?.[event.neighborhood] || `${event.venue}, ${event.neighborhood}, ${city}`;
+    }
+
+    function signupUrlFor(event) {
+      const cost = event.cost || categoryCost(event.category);
+      const city = citySearchSlug(event.city);
+      const keyword = interestKeyword(event.category);
+      if (isFreeCost(cost)) {
+        return `https://www.eventbrite.com/d/${city}/${keyword}/`;
+      }
+      if (event.category === "Golf") {
+        return "https://www.golfgenius.com/";
+      }
+      if (event.category === "Yoga" || event.category === "Fitness") {
+        return "https://www.mindbodyonline.com/";
+      }
+      if (event.category === "Cooking") {
+        return `https://www.eventbrite.com/d/${city}/cooking-classes/`;
+      }
+      return `https://www.eventbrite.com/d/${city}/${keyword}/`;
+    }
+
+    function mapsUrlFor(event) {
+      return `https://maps.google.com/?q=${encodeURIComponent(event.address)}`;
+    }
+
+    function isFreeCost(cost) {
+      return String(cost || "").toLowerCase() === "free";
+    }
+
+    function shareTextFor(event) {
+      return `Hey! Found this on Xplore 🧭\n${event.name} - ${event.dateTime} at ${event.venue}. Thought you'd be into it!`;
+    }
+
     function categoryRelatedInterests(category) {
       const map = {
         Golf: ["Golf", "Fitness", "Food & Drinks", "Running"],
@@ -1396,6 +1665,42 @@
         Entrepreneurship: ["Entrepreneurship", "Coding", "Food & Drinks", "Reading"]
       };
       return map[category] || [category, "Food & Drinks", "Reading", "Fitness"];
+    }
+
+    function demoGenderDistribution(category) {
+      const presets = {
+        Golf: { Men: 62, Women: 28, Other: 10 },
+        Tennis: { Men: 48, Women: 42, Other: 10 },
+        Hiking: { Men: 44, Women: 46, Other: 10 },
+        Yoga: { Men: 18, Women: 72, Other: 10 },
+        Cooking: { Men: 42, Women: 48, Other: 10 },
+        Art: { Men: 32, Women: 58, Other: 10 },
+        Music: { Men: 45, Women: 45, Other: 10 },
+        Reading: { Men: 30, Women: 60, Other: 10 },
+        Running: { Men: 46, Women: 44, Other: 10 },
+        Cycling: { Men: 54, Women: 36, Other: 10 },
+        Photography: { Men: 43, Women: 47, Other: 10 },
+        Gaming: { Men: 58, Women: 32, Other: 10 },
+        Trivia: { Men: 44, Women: 46, Other: 10 },
+        Volunteering: { Men: 34, Women: 56, Other: 10 },
+        "Rock Climbing": { Men: 50, Women: 40, Other: 10 },
+        Dance: { Men: 30, Women: 60, Other: 10 },
+        Film: { Men: 44, Women: 46, Other: 10 },
+        "Food & Drinks": { Men: 45, Women: 45, Other: 10 },
+        "Language Exchange": { Men: 38, Women: 50, Other: 12 },
+        Fitness: { Men: 48, Women: 42, Other: 10 },
+        Surfing: { Men: 57, Women: 31, Other: 12 },
+        "Board Games": { Men: 52, Women: 38, Other: 10 },
+        Coding: { Men: 60, Women: 28, Other: 12 },
+        Entrepreneurship: { Men: 58, Women: 30, Other: 12 }
+      };
+      return presets[category] || { Men: 45, Women: 45, Other: 10 };
+    }
+
+    function profileGenderBucket(gender) {
+      if (gender === "Woman") return "Women";
+      if (gender === "Man") return "Men";
+      return "Other";
     }
 
     function buildSnippetPool(event) {
@@ -1432,6 +1737,28 @@
       });
     }
 
+    function sanitizePublicSnippet(text) {
+      const cleaned = String(text || "").trim().replace(/\s+/g, " ");
+      if (!cleaned) return "";
+      if (/@|https?:\/\/|www\.|\b\d{3}[-.\s]?\d{3}[-.\s]?\d{4}\b/.test(cleaned)) return "";
+      const withoutNumbers = cleaned.replace(/\b\d{1,2}\b/g, "");
+      const withoutQuotedNames = withoutNumbers.replace(/\b[A-Z][a-z]{2,}\b/g, "someone");
+      return withoutQuotedNames.slice(0, 160).trim();
+    }
+
+    function buildLocalAnonymousSnippet(event, review) {
+      if (review.meetPeople === "Yes" && Number(review.starRating) >= 4) {
+        return `Easy to connect here because the ${event.category.toLowerCase()} activity gave everyone a natural way to start talking.`;
+      }
+      if (review.meetPeople === "Somewhat") {
+        return `Good if you want a softer social setting where conversation can build gradually around the activity.`;
+      }
+      if (review.recommend === "Yes") {
+        return `Worth trying if you like ${event.category.toLowerCase()} events with a little structure and a welcoming crowd.`;
+      }
+      return `The event itself was solid, but this kind of setting may work better if you already enjoy the activity first.`;
+    }
+
     function createSeedPublicStats(event) {
       const seed = hashString(`${event.id}|${event.name}|${event.venue}`);
       const attendeeCount = seededNumber(seed + 3, 8, 36);
@@ -1454,6 +1781,12 @@
         interestCounts[interest] = Math.max(2, seededNumber(seed + 31 + index, 2, Math.round(attendeeCount * 0.52)));
       });
 
+      const genderTemplate = demoGenderDistribution(event.category);
+      const genderCounts = {};
+      Object.entries(genderTemplate).forEach(([label, percent], index) => {
+        genderCounts[label] = Math.max(1, Math.round(attendeeCount * (percent / 100)) + (index === 0 ? 1 : 0));
+      });
+
       const snippetPool = buildSnippetPool(event);
       const snippets = [];
       for (let i = 0; i < 4; i += 1) {
@@ -1466,16 +1799,27 @@
         metCount: Math.round(attendeeCount * (metPercent / 100)),
         recommendCount: Math.round(attendeeCount * (recommendPercent / 100)),
         ageBuckets,
+        genderCounts,
         interestCounts,
         snippets
       };
     }
 
     function normalizeLoadedEvents(events) {
-      return (events || []).map((event) => ({
-        ...event,
-        publicStatsSeed: event.publicStatsSeed || createSeedPublicStats(event)
-      }));
+      return (events || []).map((event) => {
+        const city = event.city || inferFallbackCity(event.city || "");
+        const normalized = {
+          ...event,
+          city,
+          cost: event.cost || categoryCost(event.category),
+          address: eventAddressFor(event, city),
+          signupUrl: signupUrlFor({ ...event, city })
+        };
+        return {
+          ...normalized,
+          publicStatsSeed: event.publicStatsSeed || createSeedPublicStats(normalized)
+        };
+      });
     }
 
     function titleCaseCity(city) {
@@ -1613,7 +1957,10 @@
         interestTags: allTags,
         matchDots: dotScore,
         matchReason: overlapCount > 1 ? `${overlapCount} of your interests line up here` : `This fits your ${event.category.toLowerCase()} vibe`,
-        signupLink: event.signupLink || ""
+        signupLink: event.signupLink || "",
+        cost: event.cost || categoryCost(event.category),
+        address: eventAddressFor(event, city),
+        signupUrl: signupUrlFor({ ...event, city })
       };
       return {
         ...enriched,
@@ -1669,7 +2016,7 @@
       const prompt = [
         "Generate exactly 12 realistic local events as JSON.",
         "Return ONLY a JSON array.",
-        "Each object must include: name, emoji, category, dateTime, neighborhood, venue, description, interestTags.",
+        "Each object must include: name, emoji, category, dateTime, neighborhood, venue, address, description, interestTags, cost, signupUrl.",
         "description must be exactly 2 sentences.",
         "interestTags must be an array of 1-3 interests chosen from this list:",
         INTERESTS.join(", "),
@@ -1679,6 +2026,9 @@
         `Why using Xplore: ${profile.reason}.`,
         "Make the events feel real and specific with plausible venues and neighborhoods.",
         "Dates should be in the next 30 days and formatted like 'Thu, Apr 18 • 6:30 PM'.",
+        "address should be a plausible full street address.",
+        "cost should be like 'Free', '$15', or '$20/month'.",
+        "signupUrl should look like a plausible event signup page URL.",
         "Prioritize activities where people naturally talk while doing something.",
         "Do not include online events."
       ].join(" ");
@@ -1701,8 +2051,11 @@
         dateTime: event.dateTime,
         neighborhood: event.neighborhood || "Local favorite",
         venue: event.venue || "Neighborhood spot",
+        address: event.address,
         description: event.description,
-        interestTags: Array.isArray(event.interestTags) ? event.interestTags.filter((tag) => INTERESTS.includes(tag)) : [event.category]
+        interestTags: Array.isArray(event.interestTags) ? event.interestTags.filter((tag) => INTERESTS.includes(tag)) : [event.category],
+        cost: event.cost,
+        signupUrl: event.signupUrl
       }, profile, cityLabel, index + 2));
     }
 
@@ -1727,6 +2080,7 @@
           category: event ? event.category : "Unknown",
           meetPeople: review.meetPeople,
           recommend: review.recommend,
+          crowdMix: event ? aggregatePublicStats(event).genderSummary : "",
           note: review.note || ""
         };
       });
@@ -1741,10 +2095,15 @@
           grouped[item.category] = (grouped[item.category] || 0) + 1;
         });
         const winners = Object.entries(grouped).sort((a, b) => b[1] - a[1]).slice(0, 2).map(([name]) => name);
+        const positiveMixes = positive.map((item) => item.crowdMix).filter(Boolean);
+        const mixedFriendly = positiveMixes.find((item) => item.toLowerCase().includes("mixed"));
         if (winners.length === 0) {
-          return "You seem to enjoy events with a bit of structure and a clear activity, especially when the group feels welcoming and easy to rejoin.";
+          return mixedFriendly
+            ? "You seem to enjoy events with a bit of structure and a clear activity, especially when the group feels welcoming and mixed."
+            : "You seem to enjoy events with a bit of structure and a clear activity, especially when the group feels welcoming and easy to rejoin.";
         }
-        return `You tend to connect best at ${winners.join(" and ").toLowerCase()} events where the activity gives conversations an easy starting point. Smaller, repeat-friendly formats look like your strongest bet so far.`;
+        const crowdText = mixedFriendly ? ` ${mixedFriendly.charAt(0).toLowerCase() + mixedFriendly.slice(1)} seems to suit you especially well.` : "";
+        return `You tend to connect best at ${winners.join(" and ").toLowerCase()} events where the activity gives conversations an easy starting point.${crowdText} Smaller, repeat-friendly formats look like your strongest bet so far.`;
       }
 
       const data = await openAIRequest({
@@ -1753,6 +2112,7 @@
           "Summarize this person's event preferences in 2 warm sentences.",
           "Write in second person.",
           "Focus on what types of events seem to help them connect best.",
+          "If the crowd mix seems to matter, mention it naturally such as mixed-gender smaller events.",
           "Do not mention AI or data.",
           JSON.stringify(reviewedEntries)
         ].join(" ")
@@ -1775,6 +2135,82 @@
 
     function attendedEvents() {
       return state.events.filter((event) => state.uiState.statusById[event.id] === "Went");
+    }
+
+    function userReviewForAggregation(eventId) {
+      const review = state.reviews[eventId];
+      if (!review || !review.savedAt || !state.profile || !review.starRating) return null;
+      const event = state.events.find((item) => item.id === eventId);
+      return {
+        starRating: Number(review.starRating),
+        metPeople: review.meetPeople,
+        recommend: review.recommend,
+        publicSnippet: sanitizePublicSnippet(review.publicSnippet) || (event ? buildLocalAnonymousSnippet(event, review) : ""),
+        ageBucket: ageBucket(state.profile.age),
+        genderBucket: profileGenderBucket(state.profile.gender),
+        interests: state.profile.interests
+      };
+    }
+
+    function aggregatePublicStats(event) {
+      const seed = event.publicStatsSeed || createSeedPublicStats(event);
+      const localReview = userReviewForAggregation(event.id);
+      const ageBuckets = { ...seed.ageBuckets };
+      const genderCounts = { ...(seed.genderCounts || { Women: 0, Men: 0, Other: 0 }) };
+      const interestCounts = { ...seed.interestCounts };
+      const snippets = [...(seed.snippets || [])];
+      let count = seed.count || 0;
+      let starSum = seed.starSum || 0;
+      let metCount = seed.metCount || 0;
+      let recommendCount = seed.recommendCount || 0;
+
+      if (localReview) {
+        count += 1;
+        starSum += localReview.starRating;
+        if (localReview.meetPeople === "Yes") metCount += 1;
+        if (localReview.meetPeople === "Somewhat") metCount += 0.5;
+        if (localReview.recommend === "Yes") recommendCount += 1;
+        ageBuckets[localReview.ageBucket] = (ageBuckets[localReview.ageBucket] || 0) + 1;
+        genderCounts[localReview.genderBucket] = (genderCounts[localReview.genderBucket] || 0) + 1;
+        localReview.interests.forEach((interest) => {
+          interestCounts[interest] = (interestCounts[interest] || 0) + 1;
+        });
+        if (localReview.publicSnippet) {
+          snippets.unshift(localReview.publicSnippet);
+        }
+      }
+
+      const topAgeRange = Object.entries(ageBuckets).sort((a, b) => b[1] - a[1])[0]?.[0] || "22-29";
+      const topInterests = Object.entries(interestCounts)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 3)
+        .map(([interest]) => interest);
+      const genderPercentages = Object.entries(genderCounts)
+        .map(([label, value]) => ({ label, percent: count ? Math.round((value / count) * 100) : 0 }))
+        .filter((item) => item.percent > 0)
+        .sort((a, b) => b.percent - a.percent);
+      const genderSummary = (() => {
+        const women = genderPercentages.find((item) => item.label === "Women")?.percent || 0;
+        const men = genderPercentages.find((item) => item.label === "Men")?.percent || 0;
+        const other = genderPercentages.find((item) => item.label === "Other")?.percent || 0;
+        if (Math.abs(women - men) <= 12 && women >= 25 && men >= 25) return "Mixed-gender smaller events";
+        if (women > men && women >= 50) return "Women-leaning events";
+        if (men > women && men >= 50) return "Men-leaning events";
+        if (other >= 18) return "More gender-diverse events";
+        return "Balanced crowd mix";
+      })();
+
+      return {
+        count,
+        averageRating: count ? (starSum / count) : 0,
+        metPercent: count ? Math.round((metCount / count) * 100) : 0,
+        recommendPercent: count ? Math.round((recommendCount / count) * 100) : 0,
+        topAgeRange,
+        genderPercentages,
+        genderSummary,
+        topInterests,
+        snippets: snippets.filter(Boolean).slice(0, 4)
+      };
     }
 
     function recommendedFromReviews() {
@@ -1808,6 +2244,7 @@
       return state.uiState.onboardingDraft || {
         firstName: "",
         age: "",
+        gender: "",
         city: "",
         interests: [],
         reason: "",
@@ -1827,12 +2264,13 @@
       const draft = onboardingDraft();
       const firstName = draft.firstName.trim();
       const age = Number(draft.age);
+      const gender = draft.gender;
       const city = draft.city.trim();
       const interests = draft.interests;
       const reason = draft.reason;
 
-      if (!firstName || !age || age < 16 || age > 100 || !city || interests.length === 0 || !reason) {
-        showToast("Fill in your name, age, city, interests, and reason to get started.");
+      if (!firstName || !age || age < 16 || age > 100 || !gender || !city || interests.length === 0 || !reason) {
+        showToast("Fill in your name, age, gender, city, interests, and reason to get started.");
         return;
       }
 
@@ -1840,6 +2278,7 @@
       state.profile = {
         firstName,
         age,
+        gender,
         city,
         interests,
         reason,
@@ -1878,8 +2317,9 @@
       state.profile = null;
       state.events = [];
       state.reviews = {};
-      state.uiState = { skippedIds: [], saved: {}, statusById: {}, signupLinks: {}, signupLoading: {}, onboardingDraft: { ...onboardingDraft(), apiKey: getApiKey() }, learningSummary: "", learningGeneratedFromReviewCount: 0 };
+      state.uiState = { skippedIds: [], saved: {}, statusById: {}, signupLinks: {}, signupLoading: {}, onboardingDraft: { ...onboardingDraft(), apiKey: getApiKey() }, learningSummary: "", learningGeneratedFromReviewCount: 0, demoBannerDismissed: false };
       state.activeTab = "discover";
+      state.selectedEventId = null;
       render();
     }
 
@@ -1889,6 +2329,12 @@
       }
       saveState();
       showToast("Skipped for now. Another idea is waiting.");
+      render();
+    }
+
+    function dismissDemoBanner() {
+      state.uiState.demoBannerDismissed = true;
+      saveState();
       render();
     }
 
@@ -1912,16 +2358,18 @@
       render();
     }
 
-    function updateReview(eventId, patch) {
+    function updateReview(eventId, patch, shouldRender = true) {
       state.reviews[eventId] = { ...(state.reviews[eventId] || {}), ...patch };
       saveState();
-      render();
+      if (shouldRender) {
+        render();
+      }
     }
 
     function submitReview(eventId) {
       const review = state.reviews[eventId] || {};
-      if (!review.meetPeople || !review.recommend) {
-        showToast("Add both ratings before saving your review.");
+      if (!review.meetPeople || !review.recommend || !review.starRating) {
+        showToast("Add your star rating and both responses before saving your review.");
         return;
       }
       state.reviews[eventId] = { ...review, savedAt: new Date().toISOString() };
@@ -1957,19 +2405,56 @@
       }
     }
 
+    async function handleShare(eventId) {
+      const event = state.events.find((item) => item.id === eventId);
+      if (!event) return;
+      const shareText = shareTextFor(event);
+      const mobileLike = window.matchMedia("(max-width: 768px)").matches || /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+      if (mobileLike && navigator.share) {
+        try {
+          await navigator.share({
+            title: event.name,
+            text: `${event.description}\n\nFound this on Xplore!\n\n${shareText}`
+          });
+          return;
+        } catch (error) {
+          if (error && error.name === "AbortError") return;
+        }
+      }
+
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          await navigator.clipboard.writeText(shareText);
+        } else {
+          const helper = document.createElement("textarea");
+          helper.value = shareText;
+          document.body.appendChild(helper);
+          helper.select();
+          document.execCommand("copy");
+          document.body.removeChild(helper);
+        }
+        showToast("Copied!");
+      } catch (error) {
+        showToast("Couldn't copy that share text just now.");
+      }
+    }
+
     function updatePreferences() {
       const firstName = document.getElementById("prefs-first-name").value.trim();
       const age = Number(document.getElementById("prefs-age").value);
+      const gender = document.getElementById("prefs-gender").value;
       const city = document.getElementById("prefs-city").value.trim();
       const apiKey = document.getElementById("prefs-api-key").value.trim();
-      if (!firstName || !age || age < 16 || age > 100 || !city || state.profile.interests.length === 0) {
-        showToast("Keep a name, age, city, and at least one interest in your preferences.");
+      if (!firstName || !age || age < 16 || age > 100 || !gender || !city || state.profile.interests.length === 0) {
+        showToast("Keep a name, age, gender, city, and at least one interest in your preferences.");
         return;
       }
       state.profile = {
         ...state.profile,
         firstName,
         age,
+        gender,
         city
       };
       setApiKey(apiKey);
@@ -2027,6 +2512,131 @@
 
     function renderMatchDots(count) {
       return "●".repeat(count) + "○".repeat(5 - count);
+    }
+
+    function renderStars(value) {
+      const rounded = Math.round(value);
+      return "★".repeat(rounded) + "☆".repeat(5 - rounded);
+    }
+
+    function publicStatsMini(event) {
+      const stats = aggregatePublicStats(event);
+      return `
+        <div class="community-mini">
+          <strong>${stats.averageRating.toFixed(1)} ${renderStars(stats.averageRating)}</strong>
+          <span class="helper">${stats.count} people went</span>
+          <button class="detail-link" data-open-detail="${event.id}">See who went</button>
+        </div>
+      `;
+    }
+
+    function publicStatsCard(event) {
+      const stats = aggregatePublicStats(event);
+      return `
+        <section class="stats-card">
+          <div class="stats-head">
+            <div>
+              <span class="tiny-kicker" style="margin-bottom:8px;">See who went</span>
+              <h4>Anonymous community stats</h4>
+              <p class="helper">Based on ${stats.count} Xplore users</p>
+            </div>
+            <div class="stats-rating">${stats.averageRating.toFixed(1)} ${renderStars(stats.averageRating)}</div>
+          </div>
+          <div class="stats-grid">
+            <div class="stats-box">
+              <strong>Mostly ${escapeHtml(stats.topAgeRange)}</strong>
+              <span>Typical age range among attendees</span>
+            </div>
+            <div class="stats-box">
+              <strong>${stats.metPercent}% clicked with people</strong>
+              <span>Reported meeting at least someone they connected with</span>
+            </div>
+            <div class="stats-box">
+              <strong>${stats.recommendPercent}% would recommend it</strong>
+              <span>Would tell a friend to try this kind of event</span>
+            </div>
+            <div class="stats-box">
+              <strong>${stats.count} attended</strong>
+              <span>Anonymous participation used in this event's community summary</span>
+            </div>
+          </div>
+          <div>
+            <div class="small-label">Crowd breakdown</div>
+            <p class="helper" style="margin-top:10px;">${stats.genderPercentages.map((item) => `${escapeHtml(item.label)} ${item.percent}%`).join(" · ")}</p>
+          </div>
+          <div>
+            <div class="small-label">Top attendee interests</div>
+            <div class="interest-row" style="margin-top:10px;">
+              ${stats.topInterests.map((interest) => `<span class="interest-badge">${escapeHtml(interest)}</span>`).join("")}
+            </div>
+          </div>
+          <div>
+            <div class="small-label">Anonymous review snippets</div>
+            <div class="stats-snippets" style="margin-top:10px;">
+              ${stats.snippets.map((snippet) => `<div class="snippet">“${escapeHtml(snippet)}”</div>`).join("")}
+            </div>
+          </div>
+          <div class="privacy-note">🔒 All reviews are anonymous</div>
+        </section>
+      `;
+    }
+
+    function eventDetailModal() {
+      const event = state.events.find((item) => item.id === state.selectedEventId);
+      if (!event) return "";
+      const status = state.uiState.statusById[event.id] || "Interested";
+      const review = state.reviews[event.id] || {};
+      const signupData = state.uiState.signupLinks[event.id];
+      const isSaved = Boolean(state.uiState.saved[event.id]);
+      return `
+        <div class="detail-overlay" id="detail-overlay">
+          <div class="detail-modal panel fade-in" role="dialog" aria-modal="true" aria-label="${escapeHtml(event.name)} details">
+            <div class="detail-top">
+              <div>
+                <span class="tiny-kicker">${escapeHtml(event.category)} in ${escapeHtml(event.neighborhood)}</span>
+                <h3>${escapeHtml(event.emoji)} ${escapeHtml(event.name)}</h3>
+                <div class="event-meta">
+                  <span class="meta-pill">${escapeHtml(event.dateTime)}</span>
+                  <span class="meta-pill">${escapeHtml(event.venue)}</span>
+                  <span class="meta-pill">${escapeHtml(event.address)}</span>
+                  <span class="category-pill">${renderMatchDots(event.matchDots)} match</span>
+                </div>
+              </div>
+              <button class="detail-close" id="close-detail" aria-label="Close details">✕</button>
+            </div>
+            <div class="detail-body">
+              <section class="panel section-card">
+                <h3>About this event</h3>
+                <p>${escapeHtml(event.description)}</p>
+                <div class="button-row" style="margin-top:14px;">
+                  <span class="cost-pill ${isFreeCost(event.cost) ? "free" : "paid"}">${escapeHtml(event.cost)}</span>
+                </div>
+                <p class="helper" style="margin-top:8px;">Full address: ${escapeHtml(event.address)}</p>
+                <div class="button-row" style="margin-top:14px;">
+                  ${isSaved
+                    ? `<a class="action-link btn-primary" href="${escapeHtml(event.signupUrl)}" target="_blank" rel="noopener noreferrer">Sign Up</a><a class="action-link btn-map" href="${escapeHtml(mapsUrlFor(event))}" target="_blank" rel="noopener noreferrer">📍 Get Directions</a><button class="btn-secondary" data-share-id="${event.id}">↗ Share</button>`
+                    : `<button class="btn-primary" data-event-action="interested" data-event-id="${event.id}">I'm Interested</button><a class="action-link btn-secondary" href="${escapeHtml(event.signupUrl)}" target="_blank" rel="noopener noreferrer">Sign Up</a><a class="action-link btn-map" href="${escapeHtml(mapsUrlFor(event))}" target="_blank" rel="noopener noreferrer">📍 Get Directions</a><button class="btn-soft" data-share-id="${event.id}">↗ Share</button><button class="btn-secondary" data-event-action="skip" data-event-id="${event.id}">Skip</button>`
+                  }
+                  ${signupData ? `<a class="action-link btn-soft" href="${escapeHtml(signupData.url)}" target="_blank" rel="noopener noreferrer">Open Found Signup Link</a>` : ""}
+                </div>
+                <p class="helper" style="margin-top:10px;">In full version, links directly to event registration.</p>
+                ${isSaved ? `
+                  <div style="margin-top:14px;">
+                    <div class="small-label">Status tracker</div>
+                    <div class="status-row">
+                      ${STATUS_FLOW.map((step) => `
+                        <button class="status-chip ${status === step ? "active" : ""}" data-status-id="${event.id}" data-status-value="${step}">${step}</button>
+                      `).join("")}
+                    </div>
+                  </div>
+                ` : ""}
+                ${status === "Went" ? renderReviewForm(event, review) : ""}
+              </section>
+              ${publicStatsCard(event)}
+            </div>
+          </div>
+        </div>
+      `;
     }
 
     function escapeHtml(value) {
@@ -2099,6 +2709,14 @@
                     </div>
                   </div>
                   <div class="field-group">
+                    <div class="small-label">How do you identify?</div>
+                    <div class="chip-grid">
+                      ${GENDER_OPTIONS.map((gender) => `
+                        <button class="chip ${draft.gender === gender ? "active" : ""}" data-onboarding-gender="${escapeHtml(gender)}">${escapeHtml(gender)}</button>
+                      `).join("")}
+                    </div>
+                  </div>
+                  <div class="field-group">
                     <label for="city">City or neighborhood</label>
                     <input id="city" type="text" placeholder="Chicago, IL" value="${escapeHtml(draft.city)}" />
                   </div>
@@ -2150,6 +2768,10 @@
         button.addEventListener("click", () => toggleOnboardingInterest(button.dataset.onboardingInterest));
       });
 
+      app.querySelectorAll("[data-onboarding-gender]").forEach((button) => {
+        button.addEventListener("click", () => updateOnboardingDraft({ gender: button.dataset.onboardingGender }, true));
+      });
+
       app.querySelectorAll("[data-onboarding-reason]").forEach((button) => {
         button.addEventListener("click", () => updateOnboardingDraft({ reason: button.dataset.onboardingReason }, true));
       });
@@ -2190,10 +2812,13 @@
               <div class="event-meta">
                 <span class="category-pill">${escapeHtml(event.category)}</span>
                 <span class="meta-pill">${escapeHtml(event.dateTime)}</span>
-                <span class="meta-pill">${escapeHtml(event.venue)} · ${escapeHtml(event.neighborhood)}</span>
+                <span class="meta-pill">${escapeHtml(event.neighborhood)}</span>
               </div>
             </div>
-            ${savedMode || historyMode ? `<span class="status-pill">${escapeHtml(status)}</span>` : ""}
+            <div style="display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end;">
+              <span class="cost-pill ${isFreeCost(event.cost) ? "free" : "paid"}">${escapeHtml(event.cost)}</span>
+              ${savedMode || historyMode ? `<span class="status-pill">${escapeHtml(status)}</span>` : ""}
+            </div>
           </div>
           <div class="event-body">
             ${escapeHtml(event.description)}
@@ -2203,14 +2828,30 @@
               <span>Sounds like my crowd</span>
               <span class="match-dots" aria-label="${event.matchDots} out of 5 match">${renderMatchDots(event.matchDots)}</span>
             </div>
+            ${savedMode ? "" : publicStatsMini(event)}
             ${!savedMode && !historyMode ? `
               <div class="event-actions">
                 <button class="btn-primary" data-event-action="interested" data-event-id="${event.id}">I'm Interested</button>
+                <a class="action-link btn-secondary" href="${escapeHtml(event.signupUrl)}" target="_blank" rel="noopener noreferrer">Sign Up</a>
+                <a class="action-link btn-map" href="${escapeHtml(mapsUrlFor(event))}" target="_blank" rel="noopener noreferrer">📍 Get Directions</a>
+                <button class="btn-soft" data-share-id="${event.id}">↗ Share</button>
+                <button class="btn-soft" data-open-detail="${event.id}">View Details</button>
                 <button class="btn-secondary" data-event-action="skip" data-event-id="${event.id}">Skip</button>
               </div>
             ` : ""}
+            ${!savedMode && !historyMode ? `<p class="helper" style="margin-top:-2px;">In full version, links directly to event registration.</p>` : ""}
+            ${historyMode ? `
+              <div class="event-actions">
+                <a class="action-link btn-secondary" href="${escapeHtml(event.signupUrl)}" target="_blank" rel="noopener noreferrer">Sign Up</a>
+                <a class="action-link btn-map" href="${escapeHtml(mapsUrlFor(event))}" target="_blank" rel="noopener noreferrer">📍 Get Directions</a>
+                <button class="btn-soft" data-share-id="${event.id}">↗ Share</button>
+                <button class="btn-soft" data-open-detail="${event.id}">View Details</button>
+              </div>
+            ` : ""}
+            ${historyMode ? `<p class="helper" style="margin-top:-2px;">In full version, links directly to event registration.</p>` : ""}
             ${savedMode ? `
               <div>
+                ${publicStatsCard(event)}
                 <div class="small-label">Status tracker</div>
                 <div class="status-row">
                   ${STATUS_FLOW.map((step) => `
@@ -2218,9 +2859,14 @@
                   `).join("")}
                 </div>
                 <div class="saved-actions">
-                  <button class="btn-secondary" data-signup-id="${event.id}">${signupData ? "Refresh Signup Link" : "Find Signup Link"}</button>
-                  ${signupData ? `<a class="btn-soft" style="text-decoration:none; display:inline-flex; align-items:center; justify-content:center;" href="${escapeHtml(signupData.url)}" target="_blank" rel="noopener noreferrer">Open Link</a>` : ""}
+                  <a class="action-link btn-primary" href="${escapeHtml(event.signupUrl)}" target="_blank" rel="noopener noreferrer">Sign Up</a>
+                  <a class="action-link btn-map" href="${escapeHtml(mapsUrlFor(event))}" target="_blank" rel="noopener noreferrer">📍 Get Directions</a>
+                  <button class="btn-soft" data-share-id="${event.id}">↗ Share</button>
+                  <button class="btn-secondary" data-signup-id="${event.id}">${signupData ? "Refresh Found Link" : "Find Alternate Signup Link"}</button>
+                  <button class="btn-soft" data-open-detail="${event.id}">View Details</button>
+                  ${signupData ? `<a class="action-link btn-soft" href="${escapeHtml(signupData.url)}" target="_blank" rel="noopener noreferrer">Open Found Link</a>` : ""}
                 </div>
+                <p class="helper" style="margin-top:10px;">In full version, links directly to event registration.</p>
                 ${isSignupLoading ? `<div class="loading-row" style="margin-top: 12px;">Searching the web for a likely signup page</div>` : ""}
                 ${signupData ? `<p class="helper" style="margin-top:12px;">${escapeHtml(signupData.summary || "Likely official signup page found.")}</p>` : ""}
                 ${status === "Went" ? renderReviewForm(event, review) : ""}
@@ -2243,6 +2889,14 @@
         <div class="review-card">
           <div class="review-grid">
             <div>
+              <div class="small-label">How would you rate this event?</div>
+              <div class="stars-row">
+                ${[1, 2, 3, 4, 5].map((value) => `
+                  <button class="star-chip ${Number(review.starRating) === value ? "active" : ""}" data-review-id="${event.id}" data-review-field="starRating" data-review-value="${value}">${value} ${value === 1 ? "star" : "stars"}</button>
+                `).join("")}
+              </div>
+            </div>
+            <div>
               <div class="small-label">Did you meet people you clicked with?</div>
               <div class="review-options">
                 ${["Yes", "Somewhat", "No"].map((value) => `
@@ -2262,6 +2916,11 @@
               <label for="note-${event.id}">Private note</label>
               <textarea id="note-${event.id}" data-review-note="${event.id}" placeholder="What felt easy here? Who would you bring next time?">${escapeHtml(review.note || "")}</textarea>
             </div>
+            <div class="field-group">
+              <label for="public-note-${event.id}">Anonymous snippet for the community card</label>
+              <textarea id="public-note-${event.id}" data-review-public-note="${event.id}" placeholder="Optional. Keep it general so it stays anonymous.">${escapeHtml(review.publicSnippet || "")}</textarea>
+            </div>
+            <div class="privacy-note">🔒 All reviews are anonymous</div>
             <div class="button-row">
               <button class="btn-primary" data-review-save="${event.id}">Save Review</button>
             </div>
@@ -2289,6 +2948,12 @@
           </section>
           <div class="content-grid">
             <div class="stack">
+              ${!getApiKey() && !state.uiState.demoBannerDismissed ? `
+                <section class="info-banner panel">
+                  <p>🧭 Demo mode — showing curated events matched to your interests. In the full version, Xplore connects to local event platforms like Eventbrite, Meetup, and partner venues to find real events near you in real time.</p>
+                  <button class="banner-close" id="dismiss-demo-banner" aria-label="Dismiss demo info">✕</button>
+                </section>
+              ` : ""}
               ${state.openaiLoading ? `
                 <section class="panel section-card">
                   <div class="loading-row">Building a warm, city-specific event feed for you</div>
@@ -2441,6 +3106,12 @@
                   </div>
                 </div>
                 <div class="field-group" style="margin-top:12px;">
+                  <label for="prefs-gender">How do you identify?</label>
+                  <select id="prefs-gender">
+                    ${GENDER_OPTIONS.map((gender) => `<option value="${escapeHtml(gender)}" ${state.profile.gender === gender ? "selected" : ""}>${escapeHtml(gender)}</option>`).join("")}
+                  </select>
+                </div>
+                <div class="field-group" style="margin-top:12px;">
                   <label for="prefs-city">City or location</label>
                   <input id="prefs-city" type="text" value="${escapeHtml(state.profile.city)}" />
                 </div>
@@ -2494,12 +3165,14 @@
               </button>
             `).join("")}
           </nav>
+          ${state.selectedEventId ? eventDetailModal() : ""}
         </div>
       `;
 
       app.querySelectorAll("[data-nav]").forEach((button) => {
         button.addEventListener("click", () => {
           state.activeTab = button.dataset.nav;
+          state.selectedEventId = null;
           render();
         });
       });
@@ -2507,6 +3180,7 @@
       app.querySelectorAll("[data-tab-jump]").forEach((button) => {
         button.addEventListener("click", () => {
           state.activeTab = button.dataset.tabJump;
+          state.selectedEventId = null;
           render();
         });
       });
@@ -2527,17 +3201,50 @@
         button.addEventListener("click", () => handleSignupLink(button.dataset.signupId));
       });
 
+      app.querySelectorAll("[data-share-id]").forEach((button) => {
+        button.addEventListener("click", () => handleShare(button.dataset.shareId));
+      });
+
       app.querySelectorAll("[data-review-id]").forEach((button) => {
         button.addEventListener("click", () => updateReview(button.dataset.reviewId, { [button.dataset.reviewField]: button.dataset.reviewValue }));
       });
 
       app.querySelectorAll("[data-review-note]").forEach((textarea) => {
-        textarea.addEventListener("input", () => updateReview(textarea.dataset.reviewNote, { note: textarea.value }));
+        textarea.addEventListener("input", () => updateReview(textarea.dataset.reviewNote, { note: textarea.value }, false));
+      });
+
+      app.querySelectorAll("[data-review-public-note]").forEach((textarea) => {
+        textarea.addEventListener("input", () => updateReview(textarea.dataset.reviewPublicNote, { publicSnippet: textarea.value }, false));
       });
 
       app.querySelectorAll("[data-review-save]").forEach((button) => {
         button.addEventListener("click", () => submitReview(button.dataset.reviewSave));
       });
+
+      app.querySelectorAll("[data-open-detail]").forEach((button) => {
+        button.addEventListener("click", () => {
+          state.selectedEventId = button.dataset.openDetail;
+          render();
+        });
+      });
+
+      const closeDetail = document.getElementById("close-detail");
+      if (closeDetail) {
+        closeDetail.addEventListener("click", () => {
+          state.selectedEventId = null;
+          render();
+        });
+      }
+
+      const detailOverlay = document.getElementById("detail-overlay");
+      if (detailOverlay) {
+        detailOverlay.addEventListener("click", (event) => {
+          if (event.target.id === "detail-overlay") {
+            state.selectedEventId = null;
+            render();
+          }
+        });
+      }
 
       app.querySelectorAll("[data-pref-interest]").forEach((button) => {
         button.addEventListener("click", () => togglePreferenceInterest(button.dataset.prefInterest));
@@ -2547,6 +3254,8 @@
       if (refreshMain) refreshMain.addEventListener("click", regenerateEvents);
       const refreshInline = document.getElementById("refresh-events-inline");
       if (refreshInline) refreshInline.addEventListener("click", regenerateEvents);
+      const dismissDemoBannerButton = document.getElementById("dismiss-demo-banner");
+      if (dismissDemoBannerButton) dismissDemoBannerButton.addEventListener("click", dismissDemoBanner);
 
       const savePrefs = document.getElementById("save-preferences");
       if (savePrefs) savePrefs.addEventListener("click", updatePreferences);
