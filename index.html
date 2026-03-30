@@ -1464,10 +1464,12 @@
       };
     }
 
-    function updateOnboardingDraft(patch) {
+    function updateOnboardingDraft(patch, shouldRender = false) {
       state.uiState.onboardingDraft = { ...onboardingDraft(), ...patch };
       saveState();
-      render();
+      if (shouldRender) {
+        render();
+      }
     }
 
     async function completeOnboarding() {
@@ -1669,7 +1671,7 @@
         interests: exists
           ? draft.interests.filter((item) => item !== interest)
           : [...draft.interests, interest]
-      });
+      }, true);
     }
 
     function renderMatchDots(count) {
@@ -1798,7 +1800,7 @@
       });
 
       app.querySelectorAll("[data-onboarding-reason]").forEach((button) => {
-        button.addEventListener("click", () => updateOnboardingDraft({ reason: button.dataset.onboardingReason }));
+        button.addEventListener("click", () => updateOnboardingDraft({ reason: button.dataset.onboardingReason }, true));
       });
 
       document.getElementById("start-xplore").addEventListener("click", async () => {
