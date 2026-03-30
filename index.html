@@ -286,7 +286,8 @@
     }
 
     .field-group input,
-    .field-group textarea {
+    .field-group textarea,
+    .field-group select {
       width: 100%;
       border-radius: 16px;
       border: 1px solid var(--line);
@@ -298,7 +299,8 @@
     }
 
     .field-group input:focus,
-    .field-group textarea:focus {
+    .field-group textarea:focus,
+    .field-group select:focus {
       border-color: rgba(255, 122, 89, 0.48);
       box-shadow: 0 0 0 4px rgba(255, 122, 89, 0.12);
     }
@@ -861,6 +863,21 @@
       line-height: 1.5;
     }
 
+    .crowd-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 12px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.84);
+      border: 1px solid rgba(188, 130, 86, 0.14);
+      color: #7a5d4b;
+      font-size: 0.86rem;
+      font-weight: 700;
+      margin-right: 8px;
+      margin-bottom: 8px;
+    }
+
     .stats-snippets {
       display: grid;
       gap: 10px;
@@ -1227,6 +1244,13 @@
       "Just moved"
     ];
 
+    const GENDER_OPTIONS = [
+      "Man",
+      "Woman",
+      "Nonbinary",
+      "Prefer not to say"
+    ];
+
     const STATUS_FLOW = ["Interested", "Signed Up", "Going", "Went"];
 
     const CITY_EVENT_BANK = {
@@ -1343,6 +1367,11 @@
 
     const app = document.getElementById("app");
     const toastEl = document.getElementById("toast");
+
+    if (state.profile && !state.profile.gender) {
+      state.profile.gender = "Prefer not to say";
+      saveJSON(STORAGE_KEYS.profile, state.profile);
+    }
 
     function loadJSON(key, fallback) {
       try {
@@ -1610,6 +1639,42 @@
       return map[category] || [category, "Food & Drinks", "Reading", "Fitness"];
     }
 
+    function demoGenderDistribution(category) {
+      const presets = {
+        Golf: { Men: 62, Women: 28, Other: 10 },
+        Tennis: { Men: 48, Women: 42, Other: 10 },
+        Hiking: { Men: 44, Women: 46, Other: 10 },
+        Yoga: { Men: 18, Women: 72, Other: 10 },
+        Cooking: { Men: 42, Women: 48, Other: 10 },
+        Art: { Men: 32, Women: 58, Other: 10 },
+        Music: { Men: 45, Women: 45, Other: 10 },
+        Reading: { Men: 30, Women: 60, Other: 10 },
+        Running: { Men: 46, Women: 44, Other: 10 },
+        Cycling: { Men: 54, Women: 36, Other: 10 },
+        Photography: { Men: 43, Women: 47, Other: 10 },
+        Gaming: { Men: 58, Women: 32, Other: 10 },
+        Trivia: { Men: 44, Women: 46, Other: 10 },
+        Volunteering: { Men: 34, Women: 56, Other: 10 },
+        "Rock Climbing": { Men: 50, Women: 40, Other: 10 },
+        Dance: { Men: 30, Women: 60, Other: 10 },
+        Film: { Men: 44, Women: 46, Other: 10 },
+        "Food & Drinks": { Men: 45, Women: 45, Other: 10 },
+        "Language Exchange": { Men: 38, Women: 50, Other: 12 },
+        Fitness: { Men: 48, Women: 42, Other: 10 },
+        Surfing: { Men: 57, Women: 31, Other: 12 },
+        "Board Games": { Men: 52, Women: 38, Other: 10 },
+        Coding: { Men: 60, Women: 28, Other: 12 },
+        Entrepreneurship: { Men: 58, Women: 30, Other: 12 }
+      };
+      return presets[category] || { Men: 45, Women: 45, Other: 10 };
+    }
+
+    function profileGenderBucket(gender) {
+      if (gender === "Woman") return "Women";
+      if (gender === "Man") return "Men";
+      return "Other";
+    }
+
     function buildSnippetPool(event) {
       const templates = {
         active: [
@@ -1688,6 +1753,12 @@
         interestCounts[interest] = Math.max(2, seededNumber(seed + 31 + index, 2, Math.round(attendeeCount * 0.52)));
       });
 
+      const genderTemplate = demoGenderDistribution(event.category);
+      const genderCounts = {};
+      Object.entries(genderTemplate).forEach(([label, percent], index) => {
+        genderCounts[label] = Math.max(1, Math.round(attendeeCount * (percent / 100)) + (index === 0 ? 1 : 0));
+      });
+
       const snippetPool = buildSnippetPool(event);
       const snippets = [];
       for (let i = 0; i < 4; i += 1) {
@@ -1700,6 +1771,7 @@
         metCount: Math.round(attendeeCount * (metPercent / 100)),
         recommendCount: Math.round(attendeeCount * (recommendPercent / 100)),
         ageBuckets,
+        genderCounts,
         interestCounts,
         snippets
       };
@@ -1980,6 +2052,7 @@
           category: event ? event.category : "Unknown",
           meetPeople: review.meetPeople,
           recommend: review.recommend,
+          crowdMix: event ? aggregatePublicStats(event).genderSummary : "",
           note: review.note || ""
         };
       });
@@ -1994,10 +2067,15 @@
           grouped[item.category] = (grouped[item.category] || 0) + 1;
         });
         const winners = Object.entries(grouped).sort((a, b) => b[1] - a[1]).slice(0, 2).map(([name]) => name);
+        const positiveMixes = positive.map((item) => item.crowdMix).filter(Boolean);
+        const mixedFriendly = positiveMixes.find((item) => item.toLowerCase().includes("mixed"));
         if (winners.length === 0) {
-          return "You seem to enjoy events with a bit of structure and a clear activity, especially when the group feels welcoming and easy to rejoin.";
+          return mixedFriendly
+            ? "You seem to enjoy events with a bit of structure and a clear activity, especially when the group feels welcoming and mixed."
+            : "You seem to enjoy events with a bit of structure and a clear activity, especially when the group feels welcoming and easy to rejoin.";
         }
-        return `You tend to connect best at ${winners.join(" and ").toLowerCase()} events where the activity gives conversations an easy starting point. Smaller, repeat-friendly formats look like your strongest bet so far.`;
+        const crowdText = mixedFriendly ? ` ${mixedFriendly.charAt(0).toLowerCase() + mixedFriendly.slice(1)} seems to suit you especially well.` : "";
+        return `You tend to connect best at ${winners.join(" and ").toLowerCase()} events where the activity gives conversations an easy starting point.${crowdText} Smaller, repeat-friendly formats look like your strongest bet so far.`;
       }
 
       const data = await openAIRequest({
@@ -2006,6 +2084,7 @@
           "Summarize this person's event preferences in 2 warm sentences.",
           "Write in second person.",
           "Focus on what types of events seem to help them connect best.",
+          "If the crowd mix seems to matter, mention it naturally such as mixed-gender smaller events.",
           "Do not mention AI or data.",
           JSON.stringify(reviewedEntries)
         ].join(" ")
@@ -2040,6 +2119,7 @@
         recommend: review.recommend,
         publicSnippet: sanitizePublicSnippet(review.publicSnippet) || (event ? buildLocalAnonymousSnippet(event, review) : ""),
         ageBucket: ageBucket(state.profile.age),
+        genderBucket: profileGenderBucket(state.profile.gender),
         interests: state.profile.interests
       };
     }
@@ -2048,6 +2128,7 @@
       const seed = event.publicStatsSeed || createSeedPublicStats(event);
       const localReview = userReviewForAggregation(event.id);
       const ageBuckets = { ...seed.ageBuckets };
+      const genderCounts = { ...(seed.genderCounts || { Women: 0, Men: 0, Other: 0 }) };
       const interestCounts = { ...seed.interestCounts };
       const snippets = [...(seed.snippets || [])];
       let count = seed.count || 0;
@@ -2062,6 +2143,7 @@
         if (localReview.meetPeople === "Somewhat") metCount += 0.5;
         if (localReview.recommend === "Yes") recommendCount += 1;
         ageBuckets[localReview.ageBucket] = (ageBuckets[localReview.ageBucket] || 0) + 1;
+        genderCounts[localReview.genderBucket] = (genderCounts[localReview.genderBucket] || 0) + 1;
         localReview.interests.forEach((interest) => {
           interestCounts[interest] = (interestCounts[interest] || 0) + 1;
         });
@@ -2075,6 +2157,20 @@
         .sort((a, b) => b[1] - a[1])
         .slice(0, 3)
         .map(([interest]) => interest);
+      const genderPercentages = Object.entries(genderCounts)
+        .map(([label, value]) => ({ label, percent: count ? Math.round((value / count) * 100) : 0 }))
+        .filter((item) => item.percent > 0)
+        .sort((a, b) => b.percent - a.percent);
+      const genderSummary = (() => {
+        const women = genderPercentages.find((item) => item.label === "Women")?.percent || 0;
+        const men = genderPercentages.find((item) => item.label === "Men")?.percent || 0;
+        const other = genderPercentages.find((item) => item.label === "Other")?.percent || 0;
+        if (Math.abs(women - men) <= 12 && women >= 25 && men >= 25) return "Mixed-gender smaller events";
+        if (women > men && women >= 50) return "Women-leaning events";
+        if (men > women && men >= 50) return "Men-leaning events";
+        if (other >= 18) return "More gender-diverse events";
+        return "Balanced crowd mix";
+      })();
 
       return {
         count,
@@ -2082,6 +2178,8 @@
         metPercent: count ? Math.round((metCount / count) * 100) : 0,
         recommendPercent: count ? Math.round((recommendCount / count) * 100) : 0,
         topAgeRange,
+        genderPercentages,
+        genderSummary,
         topInterests,
         snippets: snippets.filter(Boolean).slice(0, 4)
       };
@@ -2118,6 +2216,7 @@
       return state.uiState.onboardingDraft || {
         firstName: "",
         age: "",
+        gender: "",
         city: "",
         interests: [],
         reason: "",
@@ -2137,12 +2236,13 @@
       const draft = onboardingDraft();
       const firstName = draft.firstName.trim();
       const age = Number(draft.age);
+      const gender = draft.gender;
       const city = draft.city.trim();
       const interests = draft.interests;
       const reason = draft.reason;
 
-      if (!firstName || !age || age < 16 || age > 100 || !city || interests.length === 0 || !reason) {
-        showToast("Fill in your name, age, city, interests, and reason to get started.");
+      if (!firstName || !age || age < 16 || age > 100 || !gender || !city || interests.length === 0 || !reason) {
+        showToast("Fill in your name, age, gender, city, interests, and reason to get started.");
         return;
       }
 
@@ -2150,6 +2250,7 @@
       state.profile = {
         firstName,
         age,
+        gender,
         city,
         interests,
         reason,
@@ -2308,16 +2409,18 @@
     function updatePreferences() {
       const firstName = document.getElementById("prefs-first-name").value.trim();
       const age = Number(document.getElementById("prefs-age").value);
+      const gender = document.getElementById("prefs-gender").value;
       const city = document.getElementById("prefs-city").value.trim();
       const apiKey = document.getElementById("prefs-api-key").value.trim();
-      if (!firstName || !age || age < 16 || age > 100 || !city || state.profile.interests.length === 0) {
-        showToast("Keep a name, age, city, and at least one interest in your preferences.");
+      if (!firstName || !age || age < 16 || age > 100 || !gender || !city || state.profile.interests.length === 0) {
+        showToast("Keep a name, age, gender, city, and at least one interest in your preferences.");
         return;
       }
       state.profile = {
         ...state.profile,
         firstName,
         age,
+        gender,
         city
       };
       setApiKey(apiKey);
@@ -2421,6 +2524,12 @@
             <div class="stats-box">
               <strong>${stats.count} attended</strong>
               <span>Anonymous participation used in this event's community summary</span>
+            </div>
+          </div>
+          <div>
+            <div class="small-label">Crowd breakdown</div>
+            <div style="margin-top:10px;">
+              ${stats.genderPercentages.map((item) => `<span class="crowd-pill">${escapeHtml(item.label)} ${item.percent}%</span>`).join("")}
             </div>
           </div>
           <div>
@@ -2567,6 +2676,14 @@
                     </div>
                   </div>
                   <div class="field-group">
+                    <div class="small-label">How do you identify?</div>
+                    <div class="chip-grid">
+                      ${GENDER_OPTIONS.map((gender) => `
+                        <button class="chip ${draft.gender === gender ? "active" : ""}" data-onboarding-gender="${escapeHtml(gender)}">${escapeHtml(gender)}</button>
+                      `).join("")}
+                    </div>
+                  </div>
+                  <div class="field-group">
                     <label for="city">City or neighborhood</label>
                     <input id="city" type="text" placeholder="Chicago, IL" value="${escapeHtml(draft.city)}" />
                   </div>
@@ -2616,6 +2733,10 @@
 
       app.querySelectorAll("[data-onboarding-interest]").forEach((button) => {
         button.addEventListener("click", () => toggleOnboardingInterest(button.dataset.onboardingInterest));
+      });
+
+      app.querySelectorAll("[data-onboarding-gender]").forEach((button) => {
+        button.addEventListener("click", () => updateOnboardingDraft({ gender: button.dataset.onboardingGender }, true));
       });
 
       app.querySelectorAll("[data-onboarding-reason]").forEach((button) => {
@@ -2941,6 +3062,12 @@
                     <label for="prefs-age">Age</label>
                     <input id="prefs-age" type="number" min="16" max="100" value="${escapeHtml(state.profile.age)}" />
                   </div>
+                </div>
+                <div class="field-group" style="margin-top:12px;">
+                  <label for="prefs-gender">How do you identify?</label>
+                  <select id="prefs-gender">
+                    ${GENDER_OPTIONS.map((gender) => `<option value="${escapeHtml(gender)}" ${state.profile.gender === gender ? "selected" : ""}>${escapeHtml(gender)}</option>`).join("")}
+                  </select>
                 </div>
                 <div class="field-group" style="margin-top:12px;">
                   <label for="prefs-city">City or location</label>
