@@ -798,11 +798,26 @@
       box-shadow: 0 10px 20px rgba(255, 142, 83, 0.12);
     }
 
+    .chip.selected {
+      background: linear-gradient(135deg, rgba(255, 217, 61, 0.28), rgba(255, 107, 107, 0.18));
+      color: #8d4438;
+      box-shadow: 0 10px 20px rgba(255, 142, 83, 0.12);
+    }
+
     .onboarding-note {
       margin: 0;
       color: var(--muted);
       font-size: 0.92rem;
       line-height: 1.6;
+    }
+
+    .form-error {
+      margin: 0;
+      color: #b24b40;
+      font-size: 0.92rem;
+      font-weight: 600;
+      line-height: 1.55;
+      min-height: 1.5em;
     }
 
     .cta-shell {
@@ -1190,49 +1205,7 @@
     </main>
   </div>
 
-  <div class="onboarding-overlay" id="onboarding-overlay" aria-hidden="true">
-    <div class="onboarding-modal">
-      <div class="modal-top">
-        <div>
-          <span class="section-kicker">Start Exploring</span>
-          <h3>Tell Xplore a little about you</h3>
-          <p>It takes about a minute. Nothing is public, and this stays on your device.</p>
-        </div>
-        <button class="close-modal" id="close-onboarding" aria-label="Close onboarding">✕</button>
-      </div>
-      <div class="form-grid">
-        <div class="field-group">
-          <label for="onboard-name">First name</label>
-          <input id="onboard-name" type="text" placeholder="Alex" />
-        </div>
-        <div class="field-group">
-          <label for="onboard-age">Age</label>
-          <input id="onboard-age" type="number" min="16" max="99" placeholder="27" />
-        </div>
-        <div class="field-group">
-          <label for="onboard-city">City or neighborhood</label>
-          <input id="onboard-city" type="text" placeholder="Austin, TX" />
-        </div>
-        <div class="field-group">
-          <label>What are you into?</label>
-          <div class="chip-grid" id="onboard-interests">
-            <button class="chip" type="button" data-interest="Golf">Golf</button>
-            <button class="chip" type="button" data-interest="Cooking">Cooking</button>
-            <button class="chip" type="button" data-interest="Trivia">Trivia</button>
-            <button class="chip" type="button" data-interest="Running">Running</button>
-            <button class="chip" type="button" data-interest="Yoga">Yoga</button>
-            <button class="chip" type="button" data-interest="Hiking">Hiking</button>
-            <button class="chip" type="button" data-interest="Coding">Coding</button>
-            <button class="chip" type="button" data-interest="Board Games">Board Games</button>
-          </div>
-        </div>
-        <p class="onboarding-note">Choose at least two interests so Xplore can start with a strong first set of picks.</p>
-        <div class="hero-actions" style="margin-top:6px;">
-          <button class="btn btn-primary" type="button" id="finish-onboarding">See My Events</button>
-        </div>
-      </div>
-    </div>
-  </div>
+  <div class="onboarding-overlay" id="onboarding-overlay" aria-hidden="true"></div>
 
   <script>
     const APP_STORAGE_KEY = "xplore_landing_profile";
@@ -1244,7 +1217,12 @@
     const sideTitle = document.getElementById("side-title");
     const sideCopy = document.getElementById("side-copy");
     const interestCloud = document.getElementById("interest-cloud");
-    const selectedInterests = new Set();
+    const onboardingState = {
+      firstName: "",
+      age: "",
+      city: "",
+      interests: []
+    };
 
     const demoEvents = [
       { emoji: "⛳", title: "Twilight Golf League Mixer", category: "Golf", date: "Wed • 6:30 PM", location: "Lions Municipal, Austin", description: "A relaxed nine-hole league night with patio drinks after. People usually stick around after the round and plan the next one together." },
@@ -1328,6 +1306,7 @@
     }
 
     function openOnboarding() {
+      renderOnboardingModal();
       onboardingOverlay.classList.add("visible");
       onboardingOverlay.setAttribute("aria-hidden", "false");
     }
@@ -1353,51 +1332,146 @@
       }, 380);
     }
 
+    function updateOnboardingError(message = "") {
+      const errorEl = document.getElementById("onboarding-error");
+      if (errorEl) {
+        errorEl.textContent = message;
+      }
+    }
+
+    function syncSelectedInterestUI() {
+      onboardingOverlay.querySelectorAll("[data-interest]").forEach((chip) => {
+        chip.classList.toggle("selected", onboardingState.interests.includes(chip.dataset.interest));
+      });
+    }
+
+    function renderOnboardingModal() {
+      onboardingOverlay.innerHTML = `
+        <div class="onboarding-modal">
+          <div class="modal-top">
+            <div>
+              <span class="section-kicker">Start Exploring</span>
+              <h3>Tell Xplore a little about you</h3>
+              <p>It takes about a minute. Nothing is public, and this stays on your device.</p>
+            </div>
+            <button class="close-modal" id="close-onboarding" aria-label="Close onboarding">✕</button>
+          </div>
+          <div class="form-grid">
+            <div class="field-group">
+              <label for="onboard-name">First name</label>
+              <input id="onboard-name" type="text" placeholder="Alex" value="${onboardingState.firstName}" />
+            </div>
+            <div class="field-group">
+              <label for="onboard-age">Age</label>
+              <input id="onboard-age" type="number" min="16" max="99" placeholder="27" value="${onboardingState.age}" />
+            </div>
+            <div class="field-group">
+              <label for="onboard-city">City or neighborhood</label>
+              <input id="onboard-city" type="text" placeholder="Austin, TX" value="${onboardingState.city}" />
+            </div>
+            <div class="field-group">
+              <label>What are you into?</label>
+              <div class="chip-grid" id="onboard-interests">
+                ${["Golf", "Cooking", "Trivia", "Running", "Yoga", "Hiking", "Coding", "Board Games"].map((interest) => `
+                  <button class="chip ${onboardingState.interests.includes(interest) ? "selected" : ""}" type="button" data-interest="${interest}">${interest}</button>
+                `).join("")}
+              </div>
+            </div>
+            <p class="onboarding-note">Choose at least two interests so Xplore can start with a strong first set of picks.</p>
+            <p class="form-error" id="onboarding-error" aria-live="polite"></p>
+            <div class="hero-actions" style="margin-top:6px;">
+              <button class="btn btn-primary" type="button" id="finish-onboarding">See My Events</button>
+            </div>
+          </div>
+        </div>
+      `;
+
+      const nameInput = document.getElementById("onboard-name");
+      const ageInput = document.getElementById("onboard-age");
+      const cityInput = document.getElementById("onboard-city");
+
+      nameInput.addEventListener("input", () => {
+        onboardingState.firstName = nameInput.value;
+        updateOnboardingError("");
+      });
+
+      ageInput.addEventListener("input", () => {
+        onboardingState.age = ageInput.value;
+        updateOnboardingError("");
+      });
+
+      cityInput.addEventListener("input", () => {
+        onboardingState.city = cityInput.value;
+        updateOnboardingError("");
+      });
+
+      document.getElementById("close-onboarding").addEventListener("click", closeOnboarding);
+
+      onboardingOverlay.querySelector(".onboarding-modal").addEventListener("click", (event) => {
+        event.stopPropagation();
+      });
+
+      onboardingOverlay.addEventListener("click", (event) => {
+        if (event.target === onboardingOverlay) {
+          closeOnboarding();
+        }
+      }, { once: true });
+
+      document.getElementById("onboard-interests").addEventListener("click", (event) => {
+        const chip = event.target.closest("[data-interest]");
+        if (!chip) return;
+        const interest = chip.dataset.interest;
+        if (onboardingState.interests.includes(interest)) {
+          onboardingState.interests = onboardingState.interests.filter((item) => item !== interest);
+        } else {
+          onboardingState.interests = [...onboardingState.interests, interest];
+        }
+        syncSelectedInterestUI();
+        updateOnboardingError("");
+      });
+
+      document.getElementById("finish-onboarding").addEventListener("click", handleFinishOnboarding);
+    }
+
+    function handleFinishOnboarding() {
+      const nameInput = document.getElementById("onboard-name");
+      const ageInput = document.getElementById("onboard-age");
+      const cityInput = document.getElementById("onboard-city");
+
+      onboardingState.firstName = nameInput.value.trim();
+      onboardingState.age = ageInput.value.trim();
+      onboardingState.city = cityInput.value.trim();
+
+      const age = Number(onboardingState.age);
+      if (!onboardingState.firstName || !age || age < 16 || age > 99 || !onboardingState.city) {
+        updateOnboardingError("Add your name, age, and city so Xplore can personalize your first picks.");
+        return;
+      }
+
+      if (onboardingState.interests.length < 2) {
+        updateOnboardingError("Pick at least two interest tags so your event feed feels tailored right away.");
+        return;
+      }
+
+      saveProfile({
+        firstName: onboardingState.firstName,
+        age,
+        city: onboardingState.city,
+        interests: onboardingState.interests
+      });
+      updateOnboardingError("");
+      closeOnboarding();
+      renderAppFeed();
+      setTimeout(() => {
+        appFeed.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 120);
+    }
+
     document.querySelectorAll("[data-app-link]").forEach((link) => {
       link.addEventListener("click", (event) => {
         event.preventDefault();
         launchAppFlow();
       });
-    });
-
-    document.querySelectorAll("[data-interest]").forEach((chip) => {
-      chip.addEventListener("click", () => {
-        const interest = chip.dataset.interest;
-        if (selectedInterests.has(interest)) {
-          selectedInterests.delete(interest);
-          chip.classList.remove("active");
-        } else {
-          selectedInterests.add(interest);
-          chip.classList.add("active");
-        }
-      });
-    });
-
-    document.getElementById("close-onboarding").addEventListener("click", closeOnboarding);
-    onboardingOverlay.addEventListener("click", (event) => {
-      if (event.target === onboardingOverlay) {
-        closeOnboarding();
-      }
-    });
-
-    document.getElementById("finish-onboarding").addEventListener("click", () => {
-      const firstName = document.getElementById("onboard-name").value.trim();
-      const age = Number(document.getElementById("onboard-age").value);
-      const city = document.getElementById("onboard-city").value.trim();
-      if (!firstName || !age || age < 16 || age > 99 || !city || selectedInterests.size < 2) {
-        alert("Add your name, age, city, and at least two interests to continue.");
-        return;
-      }
-
-      saveProfile({
-        firstName,
-        age,
-        city,
-        interests: Array.from(selectedInterests)
-      });
-      closeOnboarding();
-      renderAppFeed();
-      setTimeout(scrollToAppSection, 80);
     });
 
     const observer = new IntersectionObserver((entries) => {
